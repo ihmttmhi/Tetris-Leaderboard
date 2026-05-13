@@ -193,7 +193,7 @@ export default function App() {
 
           <Link to="/bracket" style={{ textDecoration: "none" }}>
             <button style={tabStyle(location.pathname === "/bracket")}>
-              Bracket
+              Tournament Bracket
             </button>
           </Link>
         </div>
