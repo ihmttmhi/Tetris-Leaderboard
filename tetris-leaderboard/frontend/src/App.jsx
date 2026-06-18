@@ -150,7 +150,7 @@ const isUnranked = (letterRank) => {
 const fmtTR = (m) => (isUnranked(m.letterRank) ? "Unranked" : m.tr);
 const fmtStanding = (s) => (s == null || s <= 0 ? "\u2013" : s.toLocaleString());
 
-function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, since }) {
+function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, since, fetchError }) {
   const normalizeRank = (rank) => {
     if (!rank) return "placeholder";
     return rank.toLowerCase().replace("+", "plus").replace("-", "minus");
@@ -164,6 +164,21 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
   return (
     <div>
       <h1>UTS Tetris Elite Leaderboard</h1>
+
+      {fetchError && (
+        <div
+          style={{
+            margin: "10px 0",
+            padding: "10px 14px",
+            border: "1px solid #e74c3c",
+            borderRadius: "8px",
+            background: "rgba(231, 76, 60, 0.1)",
+            color: "#e74c3c",
+          }}
+        >
+          ⚠ Unable to refresh leaderboard: {fetchError}
+        </div>
+      )}
 
       <Highlights highlights={highlights} since={since} />
       <Recap recap={recap} />
@@ -267,6 +282,7 @@ export default function App() {
   const [since, setSince] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [fetchError, setFetchError] = useState(null);
   const location = useLocation();
 
   const applyMode = (dark) => {
@@ -299,13 +315,18 @@ export default function App() {
     const fetchData = async () => {
       try {
         const res = await fetch("/api/leaderboard");
+        if (!res.ok) {
+          throw new Error(`Server responded with ${res.status}`);
+        }
         const data = await res.json();
         setMembers(data.members || []);
         setRecap(data.recap || null);
         setHighlights(data.highlights || null);
         setSince(data.since || null);
+        setFetchError(null);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch leaderboard:", err);
+        setFetchError(err.message || "Failed to load leaderboard data");
       }
     };
 
@@ -392,6 +413,7 @@ export default function App() {
               recap={recap}
               highlights={highlights}
               since={since}
+              fetchError={fetchError}
             />
           }
         />
