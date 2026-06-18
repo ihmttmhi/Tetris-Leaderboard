@@ -77,7 +77,19 @@ function Recap({ recap }) {
   );
 }
 
-function Highlights({ highlights }) {
+// Format a YYYY-MM-DD week key into a readable date (e.g. "Jun 8, 2026").
+const fmtDate = (key) => {
+  if (!key) return "";
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+};
+
+function Highlights({ highlights, since }) {
   if (!highlights) return null;
   const { climbers = [], fallers = [], newPeaks = [] } = highlights;
   if (!climbers.length && !fallers.length && !newPeaks.length) return null;
@@ -106,7 +118,9 @@ function Highlights({ highlights }) {
         gap: 6
       }}
     >
-      <div style={{ fontWeight: 700 }}>✨ This week's highlights</div>
+      <div style={{ fontWeight: 700 }}>
+        ✨ {since ? `Changes since ${fmtDate(since)}` : "This week's highlights"}
+      </div>
       {climbers.length > 0 && (
         <div>🚀 <strong>Top climbers:</strong> {movers(climbers, true)}</div>
       )}
@@ -128,11 +142,15 @@ function Highlights({ highlights }) {
   );
 }
 
-// tetr.io reports -1 (or 0 for standings) for unranked players.
-const fmtTR = (tr) => (tr == null || tr < 0 ? "Unranked" : tr);
+// tetr.io marks unranked players with a "z" (unranked) or "?" letter rank.
+const isUnranked = (letterRank) => {
+  const r = (letterRank ?? "").toString().toLowerCase().trim();
+  return r === "" || r === "z" || r === "?" || r === "-";
+};
+const fmtTR = (m) => (isUnranked(m.letterRank) ? "Unranked" : m.tr);
 const fmtStanding = (s) => (s == null || s <= 0 ? "\u2013" : s.toLocaleString());
 
-function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights }) {
+function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, since }) {
   const normalizeRank = (rank) => {
     if (!rank) return "placeholder";
     return rank.toLowerCase().replace("+", "plus").replace("-", "minus");
@@ -147,7 +165,7 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights }) 
     <div>
       <h1>UTS Tetris Elite Leaderboard</h1>
 
-      <Highlights highlights={highlights} />
+      <Highlights highlights={highlights} since={since} />
       <Recap recap={recap} />
 
       <input
@@ -226,7 +244,7 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights }) 
                 />
               </td>
 
-              <td>{fmtTR(m.tr)}</td>
+              <td>{fmtTR(m)}</td>
               <td>{m.pps}</td>
               <td>{m.apm}</td>
               <td>{m.vs}</td>
@@ -246,6 +264,7 @@ export default function App() {
   const [members, setMembers] = useState([]);
   const [recap, setRecap] = useState(null);
   const [highlights, setHighlights] = useState(null);
+  const [since, setSince] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const location = useLocation();
@@ -284,6 +303,7 @@ export default function App() {
         setMembers(data.members || []);
         setRecap(data.recap || null);
         setHighlights(data.highlights || null);
+        setSince(data.since || null);
       } catch (err) {
         console.error(err);
       }
@@ -371,6 +391,7 @@ export default function App() {
               setSearchTerm={setSearchTerm}
               recap={recap}
               highlights={highlights}
+              since={since}
             />
           }
         />
