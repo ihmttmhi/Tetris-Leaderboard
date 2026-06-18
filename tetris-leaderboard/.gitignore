@@ -1,3 +1,13 @@
+node_modules/
+
 .vercel
+
+# Environment files (may contain secrets)
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/*.env
+!backend/.env.example
 
 backend/history.local.json
