@@ -197,6 +197,14 @@ function getBaselineRanks() {
   return last ? last.ranks : {};
 }
 
+// The date (YYYY-MM-DD) the current live comparison is measured against, i.e.
+// the start of the current week. Null until a real baseline exists.
+function getBaselineWeek() {
+  if (!hasBaseline()) return null;
+  const last = snapshots[snapshots.length - 1];
+  return last ? last.weekStart : null;
+}
+
 // Whether we have a genuine start-of-week baseline to compare against.
 // The very first snapshot is taken mid-week (when the feature first runs), so
 // it isn't a real week boundary; movement is only meaningful once a Sunday
@@ -294,5 +302,6 @@ module.exports = {
   getMovement,
   getRecap,
   getHighlights,
+  getBaselineWeek,
   weekStartKey,
 };

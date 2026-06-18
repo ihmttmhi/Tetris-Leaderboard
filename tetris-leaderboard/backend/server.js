@@ -124,14 +124,30 @@ app.get("/api/leaderboard", (req, res) => {
     members: list,
     recap: history.getRecap(),
     highlights: history.getHighlights(list),
+    since: history.getBaselineWeek(),
   });
 });
 
 // ===== Serve frontend =====
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// Hashed JS/CSS assets are content-addressed, so cache them forever. index.html
+// must always be revalidated, otherwise a browser keeps serving the old page
+// (pointing at a stale bundle) after a Render redeploy until a manual refresh.
+const DIST_DIR = path.join(__dirname, "../frontend/dist");
+app.use(
+  express.static(DIST_DIR, {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith("index.html")) {
+        res.setHeader("Cache-Control", "no-cache");
+      } else {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      }
+    },
+  })
+);
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+  res.setHeader("Cache-Control", "no-cache");
+  res.sendFile(path.join(DIST_DIR, "index.html"));
 });
 
 // ===== STARTUP =====
