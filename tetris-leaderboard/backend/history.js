@@ -124,9 +124,27 @@ async function saveToGitHub() {
     branch: DATA_BRANCH,
   };
   if (remoteSha) body.sha = remoteSha;
-  const res = await axios.put(url, body, { headers: ghHeaders() });
-  remoteSha = res.data.content.sha;
-  console.log("Saved leaderboard history to GitHub");
+
+  try {
+    const res = await axios.put(url, body, { headers: ghHeaders() });
+    remoteSha = res.data.content.sha;
+    console.log("Saved leaderboard history to GitHub");
+  } catch (err) {
+    if (err.response?.status === 409) {
+      // SHA conflict — refetch the latest SHA and retry once
+      console.warn("SHA conflict saving history; refetching and retrying...");
+      const getRes = await axios.get(`${url}?ref=${DATA_BRANCH}`, {
+        headers: ghHeaders(),
+      });
+      remoteSha = getRes.data.sha;
+      body.sha = remoteSha;
+      const retryRes = await axios.put(url, body, { headers: ghHeaders() });
+      remoteSha = retryRes.data.content.sha;
+      console.log("Saved leaderboard history to GitHub (after conflict retry)");
+    } else {
+      throw err;
+    }
+  }
 }
 
 // ----- local fallback -----
@@ -135,7 +153,8 @@ function loadLocal() {
   try {
     snapshots = JSON.parse(fs.readFileSync(LOCAL_FILE, "utf-8"));
     console.log(`Loaded ${snapshots.length} weekly snapshot(s) from local file`);
-  } catch {
+  } catch (err) {
+    console.warn("Could not load local history (starting fresh):", err.message);
     snapshots = [];
   }
 }
@@ -148,16 +167,29 @@ function saveLocal() {
   }
 }
 
+let persistQueued = false;
+
 async function persist() {
-  if (persisting) return;
+  if (persisting) {
+    persistQueued = true;
+    return;
+  }
   persisting = true;
   try {
     if (GITHUB_TOKEN) await saveToGitHub();
     else saveLocal();
   } catch (err) {
-    console.error("Failed to persist history:", err.response?.status || err.message);
+    console.error(
+      "Failed to persist history:",
+      err.response?.status || err.message,
+      "— data may be lost on restart"
+    );
   } finally {
     persisting = false;
+    if (persistQueued) {
+      persistQueued = false;
+      persist();
+    }
   }
 }
 
