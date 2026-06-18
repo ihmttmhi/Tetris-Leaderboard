@@ -238,11 +238,10 @@ export default function App() {
         <Route
           path="/bracket"
           element={
-            <iframe
-              src="https://challonge.com/utstetriselite2026/module"
-              style={{ width: "100%", height: "80vh", border: "none" }}
-              title="Bracket"
-            />
+            <div style={{ textAlign: "center", padding: "50px" }}>
+              <h1>Oops! We are working on this section.</h1>
+              <p>The tournament bracket is currently being set up. Please check back later!</p>
+            </div>
           }
         />
       </Routes>
