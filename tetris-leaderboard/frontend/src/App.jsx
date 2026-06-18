@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import Bracket from "./Bracket";
+import { fmtDate, fmtTR, fmtStanding, normalizeRank } from "./leaderboardUtils";
 
 /* ---------------- LEADERBOARD ---------------- */
 
@@ -77,17 +78,7 @@ function Recap({ recap }) {
   );
 }
 
-// Format a YYYY-MM-DD week key into a readable date (e.g. "Jun 8, 2026").
-const fmtDate = (key) => {
-  if (!key) return "";
-  const [y, m, d] = key.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-};
+
 
 function Highlights({ highlights, since }) {
   if (!highlights) return null;
@@ -142,19 +133,10 @@ function Highlights({ highlights, since }) {
   );
 }
 
-// tetr.io marks unranked players with a "z" (unranked) or "?" letter rank.
-const isUnranked = (letterRank) => {
-  const r = (letterRank ?? "").toString().toLowerCase().trim();
-  return r === "" || r === "z" || r === "?" || r === "-";
-};
-const fmtTR = (m) => (isUnranked(m.letterRank) ? "Unranked" : m.tr);
-const fmtStanding = (s) => (s == null || s <= 0 ? "\u2013" : s.toLocaleString());
+
 
 function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, since }) {
-  const normalizeRank = (rank) => {
-    if (!rank) return "placeholder";
-    return rank.toLowerCase().replace("+", "plus").replace("-", "minus");
-  };
+
 
   const filtered = members.filter((m) =>
     (m.username ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
