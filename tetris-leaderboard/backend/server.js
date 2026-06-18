@@ -4,6 +4,7 @@ const cors = require("cors");
 const fs = require("fs");
 const axios = require("axios");
 const path = require("path");
+const history = require("./history");
 
 const app = express();
 
@@ -100,11 +101,28 @@ app.get("/api/leaderboard", (req, res) => {
     member.clubRank = index + 1;
   });
 
+  // Weekly history: roll over a snapshot if we've entered a new week, then
+  // attach each player's movement vs the start-of-week baseline.
+  const currentRanks = {};
+  const currentNames = {};
+  list.forEach((m) => {
+    currentRanks[m.username] = m.clubRank;
+    currentNames[m.username] = m.realName;
+  });
+  // Only snapshot once the cache is sufficiently warmed, so a new-week
+  // rollover isn't taken from a half-populated leaderboard on cold start.
+  const warmed = list.length >= Math.max(1, Math.floor(members.length * 0.8));
+  if (warmed) history.maybeRollover(currentRanks, currentNames);
+  list.forEach((m) => {
+    m.move = history.getMovement(m.username, m.clubRank);
+  });
+
   res.json({
     updated: Date.now(),
     totalMembers: members.length,
     cachedMembers: list.length,
     members: list,
+    recap: history.getRecap(),
   });
 });
 
@@ -118,5 +136,6 @@ app.get("*", (req, res) => {
 // ===== STARTUP =====
 loadMembers();
 rotatingUpdater();
+history.init();
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
