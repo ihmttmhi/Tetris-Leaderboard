@@ -1,6 +1,8 @@
 // backend/server.js
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const fs = require("fs");
 const axios = require("axios");
 const path = require("path");
@@ -13,10 +15,36 @@ const PORT = process.env.PORT || 3001;
 const MEMBERS_FILE = path.join(__dirname, "members.json");
 const REQUEST_DELAY = parseInt(process.env.REQUEST_DELAY_MS) || 1000;
 const USER_AGENT = "Mozilla/5.0";
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 // ==================
 
-// Enable CORS for any frontend
-app.use(cors({ origin: "*" }));
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: false, // allow inline styles used by the React frontend
+  crossOriginEmbedderPolicy: false,
+}));
+
+// Rate limiting: 100 requests per minute per IP
+app.use(
+  rateLimit({
+    windowMs: 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+);
+
+// CORS: restrict to configured origins, fall back to same-origin only
+app.use(
+  cors(
+    ALLOWED_ORIGINS.length > 0
+      ? { origin: ALLOWED_ORIGINS }
+      : { origin: false }
+  )
+);
 
 let members = [];
 let leaderboardCache = {};
