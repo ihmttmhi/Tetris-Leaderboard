@@ -89,6 +89,7 @@ async function fetchOneUser(member) {
         sprint: null,
         blitz: null,
         zenith: null,
+        zenithEx: null,
         updated: Date.now(),
       };
       console.warn(`User not found or private: ${member.username}`);
@@ -100,6 +101,7 @@ async function fetchOneUser(member) {
     const sprintRec = d["40l"]?.record;
     const blitzRec = d.blitz?.record;
     const zenithRec = d.zenith?.record;
+    const zenithExRec = d.zenithex?.record;
 
     leaderboardCache[member.username] = {
       realName: member.realName,
@@ -115,6 +117,7 @@ async function fetchOneUser(member) {
       sprint: sprintRec ? sprintRec.results.stats.finaltime : null,
       blitz: blitzRec ? blitzRec.results.stats.score : null,
       zenith: zenithRec ? zenithRec.results.stats.zenith.altitude : null,
+      zenithEx: zenithExRec ? zenithExRec.results.stats.zenith.altitude : null,
       updated: Date.now(),
     };
 
@@ -149,13 +152,17 @@ function buildLeaderboard() {
   const currentRanks = {};
   const currentNames = {};
   const currentLetterRanks = {};
+  const currentPBs = { sprints: {}, blitz: {}, zenith: {} };
   list.forEach((m) => {
     currentRanks[m.username] = m.clubRank;
     currentNames[m.username] = m.realName;
     if (m.letterRank) currentLetterRanks[m.username] = m.letterRank;
+    if (m.sprint != null) currentPBs.sprints[m.username] = m.sprint;
+    if (m.blitz != null) currentPBs.blitz[m.username] = m.blitz;
+    if (m.zenith != null) currentPBs.zenith[m.username] = m.zenith;
   });
   const warmed = list.length >= Math.max(1, Math.floor(members.length * 0.8));
-  if (warmed) history.maybeRollover(currentRanks, currentNames, currentLetterRanks);
+  if (warmed) history.maybeRollover(currentRanks, currentNames, currentLetterRanks, currentPBs);
   list.forEach((m) => {
     m.move = history.getMovement(m.username, m.clubRank);
   });

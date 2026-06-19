@@ -28,7 +28,7 @@ const MAX_SNAPSHOTS = 8;
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-let snapshots = []; // [{ weekStart: "YYYY-MM-DD", ranks: {user:rank}, names: {user:realName}, letterRanks?: {user:rank} }]
+let snapshots = []; // [{ weekStart, ranks, names, letterRanks?, bestSprints?, bestBlitz?, bestZenith? }]
 let remoteSha = null; // sha of history.json on the data branch (for updates)
 let loaded = false;
 let persisting = false;
@@ -214,17 +214,23 @@ async function init() {
 }
 
 // Take a new weekly snapshot if we've crossed into a new week (TZ Sunday 00:00).
-function maybeRollover(currentRanks, currentNames, currentLetterRanks) {
+function maybeRollover(currentRanks, currentNames, currentLetterRanks, currentPBs) {
   if (!loaded) return;
   const week = weekStartKey();
   const last = snapshots[snapshots.length - 1];
   if (last && last.weekStart >= week) return;
-  snapshots.push({
+  const snap = {
     weekStart: week,
     ranks: { ...currentRanks },
     names: { ...currentNames },
     letterRanks: { ...currentLetterRanks },
-  });
+  };
+  if (currentPBs) {
+    if (currentPBs.sprints) snap.bestSprints = { ...currentPBs.sprints };
+    if (currentPBs.blitz) snap.bestBlitz = { ...currentPBs.blitz };
+    if (currentPBs.zenith) snap.bestZenith = { ...currentPBs.zenith };
+  }
+  snapshots.push(snap);
   if (snapshots.length > MAX_SNAPSHOTS) {
     snapshots = snapshots.slice(snapshots.length - MAX_SNAPSHOTS);
   }
@@ -296,6 +302,36 @@ function getBestLetterRank(username) {
   return best;
 }
 
+// Best 40L time (lower = better), Blitz score (higher = better),
+// and Zenith altitude (higher = better) across all snapshots.
+function getHistoricalBestSprint(username) {
+  let best = null;
+  for (const s of snapshots) {
+    if (!s.bestSprints) continue;
+    const v = s.bestSprints[username];
+    if (v != null && (best == null || v < best)) best = v;
+  }
+  return best;
+}
+function getHistoricalBestBlitz(username) {
+  let best = null;
+  for (const s of snapshots) {
+    if (!s.bestBlitz) continue;
+    const v = s.bestBlitz[username];
+    if (v != null && (best == null || v > best)) best = v;
+  }
+  return best;
+}
+function getHistoricalBestZenith(username) {
+  let best = null;
+  for (const s of snapshots) {
+    if (!s.bestZenith) continue;
+    const v = s.bestZenith[username];
+    if (v != null && (best == null || v > best)) best = v;
+  }
+  return best;
+}
+
 // Top-of-page highlights derived from the live (sorted) member list:
 // biggest climbers/drops this week and players hitting a new personal-best rank.
 function getHighlights(list) {
@@ -353,7 +389,40 @@ function getHighlights(list) {
       }));
   }
 
-  return { climbers, fallers, newPeaks, newRanks };
+  // Personal best highlights for 40L, Blitz, Zenith
+  let newSprintPBs = [];
+  let newBlitzPBs = [];
+  let newZenithPBs = [];
+  if (snapshots.length >= 1) {
+    newSprintPBs = list
+      .filter((m) => {
+        if (m.sprint == null) return false;
+        const best = getHistoricalBestSprint(m.username);
+        return best != null && m.sprint < best;
+      })
+      .sort((a, b) => a.sprint - b.sprint)
+      .map((m) => ({ username: m.username, realName: m.realName, value: m.sprint, type: "sprint" }));
+
+    newBlitzPBs = list
+      .filter((m) => {
+        if (m.blitz == null) return false;
+        const best = getHistoricalBestBlitz(m.username);
+        return best != null && m.blitz > best;
+      })
+      .sort((a, b) => b.blitz - a.blitz)
+      .map((m) => ({ username: m.username, realName: m.realName, value: m.blitz, type: "blitz" }));
+
+    newZenithPBs = list
+      .filter((m) => {
+        if (m.zenith == null) return false;
+        const best = getHistoricalBestZenith(m.username);
+        return best != null && m.zenith > best;
+      })
+      .sort((a, b) => b.zenith - a.zenith)
+      .map((m) => ({ username: m.username, realName: m.realName, value: m.zenith, type: "zenith" }));
+  }
+
+  return { climbers, fallers, newPeaks, newRanks, newSprintPBs, newBlitzPBs, newZenithPBs };
 }
 
 // Recap of the most recently completed week (compare the two latest snapshots).

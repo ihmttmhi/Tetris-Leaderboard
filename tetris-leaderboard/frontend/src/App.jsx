@@ -80,10 +80,25 @@ const fmtDate = (key) => {
   });
 };
 
+const fmtSprint = (ms) => {
+  if (ms == null) return "\u2013";
+  const totalSec = ms / 1000;
+  const min = Math.floor(totalSec / 60);
+  const sec = (totalSec % 60).toFixed(3);
+  return `${min}:${sec.padStart(6, "0")}`;
+};
+const fmtBlitz = (s) => (s == null ? "\u2013" : s.toLocaleString());
+const fmtZenith = (a) => (a == null ? "\u2013" : `${a.toFixed(1)}m`);
+
 function Highlights({ highlights, since }) {
   if (!highlights) return null;
-  const { climbers = [], fallers = [], newPeaks = [], newRanks = [] } = highlights;
-  if (!climbers.length && !fallers.length && !newPeaks.length && !newRanks.length) return null;
+  const {
+    climbers = [], fallers = [], newPeaks = [], newRanks = [],
+    newSprintPBs = [], newBlitzPBs = [], newZenithPBs = [],
+  } = highlights;
+  const hasAny = climbers.length || fallers.length || newPeaks.length ||
+    newRanks.length || newSprintPBs.length || newBlitzPBs.length || newZenithPBs.length;
+  if (!hasAny) return null;
 
   const movers = (arr, up) =>
     arr.map((m, i) => (
@@ -143,6 +158,39 @@ function Highlights({ highlights, since }) {
           ))}
         </div>
       )}
+      {newSprintPBs.length > 0 && (
+        <div>
+          ⏱ <strong>New 40L PB:</strong>{" "}
+          {newSprintPBs.map((m, i) => (
+            <span key={m.username}>
+              {i > 0 && ", "}
+              <strong>{m.realName}</strong> {fmtSprint(m.value)}
+            </span>
+          ))}
+        </div>
+      )}
+      {newBlitzPBs.length > 0 && (
+        <div>
+          💥 <strong>New Blitz PB:</strong>{" "}
+          {newBlitzPBs.map((m, i) => (
+            <span key={m.username}>
+              {i > 0 && ", "}
+              <strong>{m.realName}</strong> {fmtBlitz(m.value)}
+            </span>
+          ))}
+        </div>
+      )}
+      {newZenithPBs.length > 0 && (
+        <div>
+          🗼 <strong>New Quick Play PB:</strong>{" "}
+          {newZenithPBs.map((m, i) => (
+            <span key={m.username}>
+              {i > 0 && ", "}
+              <strong>{m.realName}</strong> {fmtZenith(m.value)}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -155,22 +203,42 @@ const isUnranked = (letterRank) => {
 const fmtTR = (m) => (isUnranked(m.letterRank) ? "Unranked" : m.tr);
 const fmtStanding = (s) => (s == null || s <= 0 ? "\u2013" : s.toLocaleString());
 
-const fmtSprint = (ms) => {
-  if (ms == null) return "\u2013";
-  const totalSec = ms / 1000;
-  const min = Math.floor(totalSec / 60);
-  const sec = (totalSec % 60).toFixed(3);
-  return `${min}:${sec.padStart(6, "0")}`;
-};
-const fmtBlitz = (s) => (s == null ? "\u2013" : s.toLocaleString());
-const fmtZenith = (a) => (a == null ? "\u2013" : `${a.toFixed(1)}m`);
-
 const SORT_MODES = [
   { key: "tr", label: "TR" },
   { key: "sprint", label: "40L" },
   { key: "blitz", label: "Blitz" },
   { key: "zenith", label: "Quick Play" },
 ];
+
+const MODE_COLUMNS = {
+  tr: {
+    headers: ["TR", "Letter Rank", "PPS", "APM", "VS", "Local", "World"],
+    cells: (m, normalizeRank, fmtStanding) => [
+      <td key="tr">{fmtTR(m)}</td>,
+      <td key="lr"><img src={`/ranks/${normalizeRank(m.letterRank)}.png`} alt={m.letterRank} height="28" onError={(e) => { e.target.src = "/ranks/placeholder.png"; }} /></td>,
+      <td key="pps">{m.pps}</td>,
+      <td key="apm">{m.apm}</td>,
+      <td key="vs">{m.vs}</td>,
+      <td key="local">{fmtStanding(m.standing_local)}</td>,
+      <td key="world">{fmtStanding(m.standing_world)}</td>,
+    ],
+  },
+  sprint: {
+    headers: ["40L Time"],
+    cells: (m) => [<td key="sprint">{fmtSprint(m.sprint)}</td>],
+  },
+  blitz: {
+    headers: ["Blitz Score"],
+    cells: (m) => [<td key="blitz">{fmtBlitz(m.blitz)}</td>],
+  },
+  zenith: {
+    headers: ["Quick Play", "Expert QP"],
+    cells: (m) => [
+      <td key="zenith">{fmtZenith(m.zenith)}</td>,
+      <td key="zenithEx">{fmtZenith(m.zenithEx)}</td>,
+    ],
+  },
+};
 
 function sortMembers(list, mode) {
   const sorted = [...list];
@@ -284,16 +352,7 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
             <th>Real Name</th>
             <th>Username</th>
             <th>Grade</th>
-            <th>Letter Rank</th>
-            <th>TR</th>
-            <th>40L</th>
-            <th>Blitz</th>
-            <th>QP</th>
-            <th>PPS</th>
-            <th>APM</th>
-            <th>VS</th>
-            <th>Local</th>
-            <th>World</th>
+            {MODE_COLUMNS[sortMode].headers.map((h) => <th key={h}>{h}</th>)}
           </tr>
         </thead>
 
@@ -328,26 +387,7 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
 
               <td>{m.grade || "-"}</td>
 
-              <td>
-                <img
-                  src={`/ranks/${normalizeRank(m.letterRank)}.png`}
-                  alt={m.letterRank}
-                  height="28"
-                  onError={(e) => {
-                    e.target.src = "/ranks/placeholder.png";
-                  }}
-                />
-              </td>
-
-              <td>{fmtTR(m)}</td>
-              <td>{fmtSprint(m.sprint)}</td>
-              <td>{fmtBlitz(m.blitz)}</td>
-              <td>{fmtZenith(m.zenith)}</td>
-              <td>{m.pps}</td>
-              <td>{m.apm}</td>
-              <td>{m.vs}</td>
-              <td>{fmtStanding(m.standing_local)}</td>
-              <td>{fmtStanding(m.standing_world)}</td>
+              {MODE_COLUMNS[sortMode].cells(m, normalizeRank, fmtStanding)}
             </tr>
           ))}
         </tbody>
