@@ -11,6 +11,13 @@ const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
 
+function safeErrorMsg(err) {
+  // Avoid leaking Authorization headers in logs
+  return err.response?.status
+    ? `HTTP ${err.response.status}`
+    : err.message || "Unknown error";
+}
+
 const TZ = process.env.WEEK_TZ || "America/Toronto";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
 const GITHUB_REPO = process.env.GITHUB_REPO || "athletictrack/Tetris-Leaderboard";
@@ -181,7 +188,7 @@ async function persist() {
   } catch (err) {
     console.error(
       "Failed to persist history:",
-      err.response?.status || err.message,
+      safeErrorMsg(err),
       "— data may be lost on restart"
     );
   } finally {
@@ -200,7 +207,7 @@ async function init() {
     if (GITHUB_TOKEN) await loadFromGitHub();
     else loadLocal();
   } catch (err) {
-    console.error("Failed to load history:", err.response?.status || err.message);
+    console.error("Failed to load history:", safeErrorMsg(err));
     snapshots = [];
   }
   loaded = true;

@@ -1,6 +1,9 @@
 // backend/server.js
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const fs = require("fs");
 const axios = require("axios");
 const path = require("path");
@@ -11,12 +14,30 @@ const app = express();
 // ===== CONFIG =====
 const PORT = process.env.PORT || 3001;
 const MEMBERS_FILE = path.join(__dirname, "members.json");
-const REQUEST_DELAY = parseInt(process.env.REQUEST_DELAY_MS) || 1000;
-const USER_AGENT = "Mozilla/5.0";
+const REQUEST_DELAY = Math.max(500, parseInt(process.env.REQUEST_DELAY_MS) || 500);
+const USER_AGENT = "TetrisLeaderboard/1.0 (https://github.com/athletictrack/Tetris-Leaderboard)";
 // ==================
 
-// Enable CORS for any frontend
-app.use(cors({ origin: "*" }));
+// Enable CORS
+const ALLOWED_ORIGINS = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(",").map(s => s.trim())
+  : ["*"];
+app.use(cors({
+  origin: ALLOWED_ORIGINS.includes("*") ? "*" : ALLOWED_ORIGINS,
+}));
+
+app.use(helmet({
+  contentSecurityPolicy: false, // Let Vite/React handle CSP in the HTML
+}));
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60,             // 60 requests per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." },
+});
+app.use("/api", apiLimiter);
 
 let members = [];
 let leaderboardCache = {};
@@ -27,6 +48,13 @@ function loadMembers() {
   try {
     const raw = fs.readFileSync(MEMBERS_FILE, "utf-8");
     members = JSON.parse(raw);
+    members = members.filter(m => {
+      if (!/^[a-zA-Z0-9_-]+$/.test(m.username)) {
+        console.warn(`Skipping member with invalid username: ${m.username}`);
+        return false;
+      }
+      return true;
+    });
     console.log(`Loaded ${members.length} members`);
   } catch (err) {
     console.error("Failed to load members.json:", err.message);
@@ -155,6 +183,9 @@ app.use(
 );
 
 app.get("*", (req, res) => {
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({ error: "Not found" });
+  }
   res.setHeader("Cache-Control", "no-cache");
   res.sendFile(path.join(DIST_DIR, "index.html"), (err) => {
     if (err) {

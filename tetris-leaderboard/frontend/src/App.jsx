@@ -312,27 +312,31 @@ export default function App() {
   useEffect(() => {
     applyMode(darkMode);
 
+    let pollDelay = 5000;      // normal interval (twice as fast)
+    const MAX_DELAY = 120000;  // max 2 minutes on repeated errors
+
     const fetchData = async () => {
       try {
         const res = await fetch("/api/leaderboard");
-        if (!res.ok) {
-          throw new Error(`Server responded with ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
         const data = await res.json();
         setMembers(data.members || []);
         setRecap(data.recap || null);
         setHighlights(data.highlights || null);
         setSince(data.since || null);
         setFetchError(null);
+        pollDelay = 5000; // reset on success
       } catch (err) {
         console.error("Failed to fetch leaderboard:", err);
         setFetchError(err.message || "Failed to load leaderboard data");
+        pollDelay = Math.min(pollDelay * 2, MAX_DELAY); // exponential backoff
       }
+      timeoutId = setTimeout(fetchData, pollDelay);
     };
 
+    let timeoutId;
     fetchData();
-    const interval = setInterval(fetchData, 10000);
-    return () => clearInterval(interval);
+    return () => clearTimeout(timeoutId);
   }, [darkMode]);
 
   const tabStyle = (active) => ({
