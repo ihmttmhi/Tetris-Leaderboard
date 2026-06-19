@@ -18,6 +18,9 @@ const REQUEST_DELAY = Math.max(500, parseInt(process.env.REQUEST_DELAY_MS) || 50
 const USER_AGENT = "TetrisLeaderboard/1.0 (https://github.com/athletictrack/Tetris-Leaderboard)";
 // ==================
 
+// Trust first proxy (Render, etc.) so rate limiter sees real client IPs
+app.set("trust proxy", 1);
+
 // Enable CORS
 const ALLOWED_ORIGINS = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(",").map(s => s.trim())
