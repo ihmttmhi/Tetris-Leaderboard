@@ -35,7 +35,7 @@ app.use(helmet({
 
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 180,            // 180 requests per minute per IP (frontend polls every 500ms)
+  max: 60,             // 60 requests per minute per IP
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many requests, please try again later." },
@@ -45,6 +45,7 @@ app.use("/api", apiLimiter);
 let members = [];
 let leaderboardCache = {};
 let currentIndex = 0;
+const sseClients = new Set();
 
 // Load members from JSON
 function loadMembers() {
@@ -65,10 +66,10 @@ function loadMembers() {
   }
 }
 
-// Fetch one member
+// Fetch one member (all summaries in a single call)
 async function fetchOneUser(member) {
   try {
-    const url = `https://ch.tetr.io/api/users/${member.username}/summaries/league`;
+    const url = `https://ch.tetr.io/api/users/${member.username}/summaries`;
     const response = await axios.get(url, {
       headers: { "User-Agent": USER_AGENT },
       timeout: 10000,
@@ -85,29 +86,40 @@ async function fetchOneUser(member) {
         rank: "-",
         standing_world: 0,
         standing_local: 0,
+        sprint: null,
+        blitz: null,
+        zenith: null,
         updated: Date.now(),
       };
       console.warn(`User not found or private: ${member.username}`);
       return;
     }
 
-    const data = response.data.data;
+    const d = response.data.data;
+    const league = d.league || {};
+    const sprintRec = d["40l"]?.record;
+    const blitzRec = d.blitz?.record;
+    const zenithRec = d.zenith?.record;
 
     leaderboardCache[member.username] = {
       realName: member.realName,
       username: member.username,
       grade: member.grade,
-      letterRank: data.rank || "-",   // letter rank from API (S, S+, etc.)
-      tr: data.tr || 0,               // rating used for ordering club leaderboard
-      pps: data.pps || 0,
-      apm: data.apm || 0,
-      vs: data.vs || 0,
-      standing_world: data.standing || 0,      // global numeric rank
-      standing_local: data.standing_local || 0,// country numeric rank
+      letterRank: league.rank || "-",
+      tr: league.tr || 0,
+      pps: league.pps || 0,
+      apm: league.apm || 0,
+      vs: league.vs || 0,
+      standing_world: league.standing || 0,
+      standing_local: league.standing_local || 0,
+      sprint: sprintRec ? sprintRec.results.stats.finaltime : null,
+      blitz: blitzRec ? blitzRec.results.stats.score : null,
+      zenith: zenithRec ? zenithRec.results.stats.zenith.altitude : null,
       updated: Date.now(),
     };
 
     console.log(`Updated ${member.username}`);
+    notifyClients();
   } catch (err) {
     console.error(`Error updating ${member.username}: ${err.response?.status || err.message}`);
   }
@@ -126,44 +138,74 @@ async function rotatingUpdater() {
   setTimeout(rotatingUpdater, REQUEST_DELAY);
 }
 
+// Build the current leaderboard payload (shared by REST + SSE)
+function buildLeaderboard() {
+  const list = Object.values(leaderboardCache);
+  list.sort((a, b) => b.tr - a.tr);
+  list.forEach((member, index) => {
+    member.clubRank = index + 1;
+  });
+
+  const currentRanks = {};
+  const currentNames = {};
+  const currentLetterRanks = {};
+  list.forEach((m) => {
+    currentRanks[m.username] = m.clubRank;
+    currentNames[m.username] = m.realName;
+    if (m.letterRank) currentLetterRanks[m.username] = m.letterRank;
+  });
+  const warmed = list.length >= Math.max(1, Math.floor(members.length * 0.8));
+  if (warmed) history.maybeRollover(currentRanks, currentNames, currentLetterRanks);
+  list.forEach((m) => {
+    m.move = history.getMovement(m.username, m.clubRank);
+  });
+
+  return {
+    updated: Date.now(),
+    totalMembers: members.length,
+    cachedMembers: list.length,
+    members: list,
+    recap: history.getRecap(),
+    highlights: history.getHighlights(list),
+    since: history.getBaselineWeek(),
+  };
+}
+
+// Notify all SSE clients after a player is updated
+function notifyClients() {
+  if (sseClients.size === 0) return;
+  try {
+    const payload = JSON.stringify(buildLeaderboard());
+    for (const res of sseClients) {
+      res.write(`data: ${payload}\n\n`);
+    }
+  } catch (err) {
+    console.error("Error notifying SSE clients:", err.message);
+  }
+}
+
+// SSE endpoint — pushes leaderboard after each player fetch
+app.get("/api/leaderboard/stream", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  // Send current state immediately
+  try {
+    res.write(`data: ${JSON.stringify(buildLeaderboard())}\n\n`);
+  } catch (err) {
+    console.error("Error sending initial SSE payload:", err.message);
+  }
+
+  sseClients.add(res);
+  req.on("close", () => sseClients.delete(res));
+});
+
 // API endpoint
 app.get("/api/leaderboard", (req, res) => {
   try {
-    const list = Object.values(leaderboardCache);
-    // Sort by TR descending
-    list.sort((a, b) => b.tr - a.tr);
-    // Assign clubRank
-    list.forEach((member, index) => {
-      member.clubRank = index + 1;
-    });
-
-    // Weekly history: roll over a snapshot if we've entered a new week, then
-    // attach each player's movement vs the start-of-week baseline.
-    const currentRanks = {};
-    const currentNames = {};
-    const currentLetterRanks = {};
-    list.forEach((m) => {
-      currentRanks[m.username] = m.clubRank;
-      currentNames[m.username] = m.realName;
-      if (m.letterRank) currentLetterRanks[m.username] = m.letterRank;
-    });
-    // Only snapshot once the cache is sufficiently warmed, so a new-week
-    // rollover isn't taken from a half-populated leaderboard on cold start.
-    const warmed = list.length >= Math.max(1, Math.floor(members.length * 0.8));
-    if (warmed) history.maybeRollover(currentRanks, currentNames, currentLetterRanks);
-    list.forEach((m) => {
-      m.move = history.getMovement(m.username, m.clubRank);
-    });
-
-    res.json({
-      updated: Date.now(),
-      totalMembers: members.length,
-      cachedMembers: list.length,
-      members: list,
-      recap: history.getRecap(),
-      highlights: history.getHighlights(list),
-      since: history.getBaselineWeek(),
-    });
+    res.json(buildLeaderboard());
   } catch (err) {
     console.error("Error building leaderboard response:", err);
     res.status(500).json({ error: "Internal server error" });
