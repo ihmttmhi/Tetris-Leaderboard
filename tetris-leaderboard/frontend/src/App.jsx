@@ -14,26 +14,23 @@ function Movement({ move }) {
   }
   if (move.dir === "same") {
     return (
-      <span
-        title="No change since the start of the week"
-        style={{
-          display: "inline-block",
-          width: 16,
-          height: 4,
-          borderRadius: 2,
-          background: "#9e9e9e",
-          verticalAlign: "middle"
-        }}
-      />
+      <span title="No change since the start of the week" style={{ display: "inline-flex", alignItems: "center" }}>
+        <img src="/icons/bar-same.svg" alt="No change" height="10" style={{ verticalAlign: "middle" }} />
+      </span>
     );
   }
   const up = move.dir === "up";
   return (
     <span
       title={`${up ? "Up" : "Down"} ${move.delta} since the start of the week`}
-      style={{ color: up ? "#2ecc71" : "#e74c3c", fontWeight: 600 }}
+      style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 600, color: up ? "#2ecc71" : "#e74c3c" }}
     >
-      {up ? "\u25B2" : "\u25BC"} {move.delta}
+      <img
+        src={up ? "/icons/arrow-up.svg" : "/icons/arrow-down.svg"}
+        alt={up ? "Up" : "Down"}
+        height="18"
+      />
+      {move.delta}
     </span>
   );
 }
