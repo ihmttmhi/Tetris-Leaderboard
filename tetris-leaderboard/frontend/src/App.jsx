@@ -5,17 +5,11 @@ import Bracket from "./Bracket";
 /* ---------------- LEADERBOARD ---------------- */
 
 function Movement({ move }) {
-  if (!move || move.dir === "new") {
+  if (!move || move.dir === "new" || move.dir === "same") {
+    const title = (!move || move.dir === "new") ? "New this week" : "No change since the start of the week";
     return (
-      <span title="New this week" style={{ color: "var(--footer-color)" }}>
-        –
-      </span>
-    );
-  }
-  if (move.dir === "same") {
-    return (
-      <span title="No change since the start of the week" style={{ display: "inline-flex", alignItems: "center" }}>
-        <img src="/icons/bar-same.svg" alt="No change" height="10" style={{ verticalAlign: "middle" }} />
+      <span title={title} style={{ display: "inline-flex", alignItems: "center" }}>
+        <img src="/icons/bar-same.svg" alt={title} height="10" style={{ verticalAlign: "middle" }} />
       </span>
     );
   }
