@@ -317,31 +317,28 @@ export default function App() {
   useEffect(() => {
     applyMode(darkMode);
 
-    let pollDelay = 500;       // poll after every backend fetch
-    const MAX_DELAY = 120000;  // max 2 minutes on repeated errors
-
-    const fetchData = async () => {
-      try {
-        const res = await fetch("/api/leaderboard");
-        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-        const data = await res.json();
-        setMembers(data.members || []);
-        setRecap(data.recap || null);
-        setHighlights(data.highlights || null);
-        setSince(data.since || null);
-        setFetchError(null);
-        pollDelay = 500; // reset on success
-      } catch (err) {
-        console.error("Failed to fetch leaderboard:", err);
-        setFetchError(err.message || "Failed to load leaderboard data");
-        pollDelay = Math.min(pollDelay * 2, MAX_DELAY); // exponential backoff
-      }
-      timeoutId = setTimeout(fetchData, pollDelay);
+    const applyData = (data) => {
+      setMembers(data.members || []);
+      setRecap(data.recap || null);
+      setHighlights(data.highlights || null);
+      setSince(data.since || null);
+      setFetchError(null);
     };
 
-    let timeoutId;
-    fetchData();
-    return () => clearTimeout(timeoutId);
+    // Use SSE for real-time per-player updates; fall back to polling on error
+    const es = new EventSource("/api/leaderboard/stream");
+    es.onmessage = (event) => {
+      try {
+        applyData(JSON.parse(event.data));
+      } catch (err) {
+        console.error("Failed to parse SSE data:", err);
+      }
+    };
+    es.onerror = () => {
+      setFetchError("Live connection lost — retrying...");
+    };
+
+    return () => es.close();
   }, [darkMode]);
 
   const tabStyle = (active) => ({
