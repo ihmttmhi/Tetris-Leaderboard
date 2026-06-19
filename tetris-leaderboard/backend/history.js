@@ -28,7 +28,7 @@ const MAX_SNAPSHOTS = 8;
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-let snapshots = []; // [{ weekStart: "YYYY-MM-DD", ranks: {user:rank}, names: {user:realName} }]
+let snapshots = []; // [{ weekStart: "YYYY-MM-DD", ranks: {user:rank}, names: {user:realName}, letterRanks?: {user:rank} }]
 let remoteSha = null; // sha of history.json on the data branch (for updates)
 let loaded = false;
 let persisting = false;
@@ -214,7 +214,7 @@ async function init() {
 }
 
 // Take a new weekly snapshot if we've crossed into a new week (TZ Sunday 00:00).
-function maybeRollover(currentRanks, currentNames) {
+function maybeRollover(currentRanks, currentNames, currentLetterRanks) {
   if (!loaded) return;
   const week = weekStartKey();
   const last = snapshots[snapshots.length - 1];
@@ -223,6 +223,7 @@ function maybeRollover(currentRanks, currentNames) {
     weekStart: week,
     ranks: { ...currentRanks },
     names: { ...currentNames },
+    letterRanks: { ...currentLetterRanks },
   });
   if (snapshots.length > MAX_SNAPSHOTS) {
     snapshots = snapshots.slice(snapshots.length - MAX_SNAPSHOTS);
@@ -274,6 +275,27 @@ function getBestRank(username) {
   return best;
 }
 
+// TETR.IO letter rank ordering (lowest to highest).
+const RANK_ORDER = [
+  "d", "d+", "c-", "c", "c+", "b-", "b", "b+",
+  "a-", "a", "a+", "s-", "s", "s+", "ss", "u", "x", "x+",
+];
+function rankIndex(r) {
+  if (!r) return -1;
+  return RANK_ORDER.indexOf(r.toLowerCase().trim());
+}
+
+// Best (highest) letter rank a player has ever held across all snapshots.
+function getBestLetterRank(username) {
+  let best = -1;
+  for (const s of snapshots) {
+    if (!s.letterRanks) continue;
+    const idx = rankIndex(s.letterRanks[username]);
+    if (idx > best) best = idx;
+  }
+  return best;
+}
+
 // Top-of-page highlights derived from the live (sorted) member list:
 // biggest climbers/drops this week and players hitting a new personal-best rank.
 function getHighlights(list) {
@@ -312,7 +334,26 @@ function getHighlights(list) {
       }));
   }
 
-  return { climbers, fallers, newPeaks };
+  // Players whose current TETR.IO letter rank is higher than any previously
+  // recorded snapshot — i.e. they achieved a new rank since tracking began.
+  let newRanks = [];
+  if (snapshots.length >= 1) {
+    newRanks = list
+      .filter((m) => {
+        const currentIdx = rankIndex(m.letterRank);
+        if (currentIdx <= 0) return false; // unranked / unknown
+        const bestIdx = getBestLetterRank(m.username);
+        return bestIdx >= 0 && currentIdx > bestIdx;
+      })
+      .sort((a, b) => rankIndex(b.letterRank) - rankIndex(a.letterRank))
+      .map((m) => ({
+        username: m.username,
+        realName: m.realName,
+        newRank: m.letterRank,
+      }));
+  }
+
+  return { climbers, fallers, newPeaks, newRanks };
 }
 
 // Recap of the most recently completed week (compare the two latest snapshots).

@@ -91,8 +91,8 @@ const fmtDate = (key) => {
 
 function Highlights({ highlights, since }) {
   if (!highlights) return null;
-  const { climbers = [], fallers = [], newPeaks = [] } = highlights;
-  if (!climbers.length && !fallers.length && !newPeaks.length) return null;
+  const { climbers = [], fallers = [], newPeaks = [], newRanks = [] } = highlights;
+  if (!climbers.length && !fallers.length && !newPeaks.length && !newRanks.length) return null;
 
   const movers = (arr, up) =>
     arr.map((m, i) => (
@@ -121,6 +121,20 @@ function Highlights({ highlights, since }) {
       <div style={{ fontWeight: 700 }}>
         ✨ {since ? `Changes since ${fmtDate(since)}` : "This week's highlights"}
       </div>
+      {newRanks.length > 0 && (
+        <div>
+          🏆 <strong>New rank achieved:</strong>{" "}
+          {newRanks.map((m, i) => (
+            <span key={m.username}>
+              {i > 0 && ", "}
+              <strong>{m.realName}</strong> reached{" "}
+              <span style={{ fontWeight: 700, textTransform: "uppercase" }}>
+                {m.newRank}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
       {climbers.length > 0 && (
         <div>🚀 <strong>Top climbers:</strong> {movers(climbers, true)}</div>
       )}
@@ -203,7 +217,7 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
         <thead style={{ background: "var(--table-header-bg)" }}>
           <tr>
             <th>Rank</th>
-            <th>Move</th>
+            <th>Change</th>
             <th>Real Name</th>
             <th>Username</th>
             <th>Grade</th>

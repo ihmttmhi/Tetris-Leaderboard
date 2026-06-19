@@ -141,14 +141,16 @@ app.get("/api/leaderboard", (req, res) => {
     // attach each player's movement vs the start-of-week baseline.
     const currentRanks = {};
     const currentNames = {};
+    const currentLetterRanks = {};
     list.forEach((m) => {
       currentRanks[m.username] = m.clubRank;
       currentNames[m.username] = m.realName;
+      if (m.letterRank) currentLetterRanks[m.username] = m.letterRank;
     });
     // Only snapshot once the cache is sufficiently warmed, so a new-week
     // rollover isn't taken from a half-populated leaderboard on cold start.
     const warmed = list.length >= Math.max(1, Math.floor(members.length * 0.8));
-    if (warmed) history.maybeRollover(currentRanks, currentNames);
+    if (warmed) history.maybeRollover(currentRanks, currentNames, currentLetterRanks);
     list.forEach((m) => {
       m.move = history.getMovement(m.username, m.clubRank);
     });
