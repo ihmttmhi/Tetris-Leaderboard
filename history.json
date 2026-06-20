@@ -120,6 +120,12 @@
     "tetrusmountain": {
       "zenithBestTs": "2026-01-23T14:49:07.750Z",
       "letterRank": "b-"
+    },
+    "not_bob": {
+      "sprintTs": "2026-02-11T03:01:24.229Z",
+      "blitzTs": "2026-02-12T03:38:59.039Z",
+      "zenithBestTs": "2026-06-05T20:37:24.770Z",
+      "letterRank": "c+"
     }
   },
   "recentAchievements": []
