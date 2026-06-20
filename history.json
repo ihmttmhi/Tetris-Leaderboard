@@ -272,7 +272,7 @@
     },
     "viannna": {
       "sprintTs": "2026-06-12T23:37:52.276Z",
-      "blitzTs": "2026-06-17T20:16:34.852Z",
+      "blitzTs": "2026-06-20T16:41:39.561Z",
       "zenithBestTs": "2026-05-17T20:48:58.130Z",
       "letterRank": "b"
     },
@@ -435,6 +435,13 @@
       "type": "rank",
       "value": "b",
       "achievedAt": 1781973873973
+    },
+    {
+      "username": "viannna",
+      "realName": "Vianna Su",
+      "type": "blitz",
+      "value": 87934,
+      "achievedAt": 1781973887993
     }
   ]
 }
