@@ -102,27 +102,28 @@ const fmtTimeAgo = (ts) => {
   return `${days}d ago`;
 };
 
+function fmtAchievement(a) {
+  const name = a.username.toUpperCase();
+  switch (a.type) {
+    case "rank":
+      return `${name} achieved ${a.value.toUpperCase()} rank`;
+    case "sprint":
+      return `${name} got a new personal best in 40 Lines with a time of ${fmtSprint(a.value)}`;
+    case "blitz":
+      return `${name} got a new personal best in Blitz with a score of ${fmtBlitz(a.value)}`;
+    case "zenith":
+      return `${name} got a new personal best in Quick Play with an altitude of ${fmtZenith(a.value)}`;
+    case "zenithEx":
+      return `${name} got a new personal best in Expert Quick Play with an altitude of ${fmtZenith(a.value)}`;
+    default:
+      return "";
+  }
+}
+
 function Highlights({ highlights, since }) {
   if (!highlights) return null;
-  const {
-    climbers = [], fallers = [], newPeaks = [], newRanks = [],
-    newSprintPBs = [], newBlitzPBs = [], newZenithPBs = [], newZenithExPBs = [],
-  } = highlights;
-  const hasAny = climbers.length || fallers.length || newPeaks.length ||
-    newRanks.length || newSprintPBs.length || newBlitzPBs.length ||
-    newZenithPBs.length || newZenithExPBs.length;
-  if (!hasAny) return null;
-
-  const movers = (arr, up) =>
-    arr.map((m, i) => (
-      <span key={m.username}>
-        {i > 0 && ", "}
-        <strong>{m.realName}</strong>{" "}
-        <span style={{ color: up ? "#2ecc71" : "#e74c3c", fontWeight: 600 }}>
-          {up ? "\u25B2" : "\u25BC"}{m.delta}
-        </span>
-      </span>
-    ));
+  const { achievements = [] } = highlights;
+  if (!achievements.length) return null;
 
   return (
     <div
@@ -134,93 +135,19 @@ function Highlights({ highlights, since }) {
         background: "linear-gradient(135deg, var(--table-header-bg), var(--table-row-even))",
         display: "flex",
         flexDirection: "column",
-        gap: 6,
+        gap: 10,
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
       }}
     >
       <div style={{ fontWeight: 700, fontSize: "1.05em", marginBottom: 4 }}>
-        ✨ {since ? `Changes since ${fmtDate(since)}` : "This week's highlights"}
+        LATEST NEWS
       </div>
-      {newRanks.length > 0 && (
-        <div>
-          🏆 <strong>New rank achieved:</strong>{" "}
-          {newRanks.map((m, i) => (
-            <span key={m.username}>
-              {i > 0 && ", "}
-              <strong>{m.realName}</strong> reached{" "}
-              <span style={{ fontWeight: 700, textTransform: "uppercase" }}>
-                {m.newRank}
-              </span>
-              {m.achievedAt && <span style={{ color: "var(--footer-color)", fontSize: "0.85em", marginLeft: 4 }}>({fmtTimeAgo(m.achievedAt)})</span>}
-            </span>
-          ))}
+      {achievements.map((a, i) => (
+        <div key={`${a.username}-${a.type}-${i}`} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <div style={{ fontWeight: 500 }}>{fmtAchievement(a)}</div>
+          <div style={{ color: "var(--footer-color)", fontSize: "0.85em" }}>{fmtTimeAgo(a.achievedAt)}</div>
         </div>
-      )}
-      {climbers.length > 0 && (
-        <div>🚀 <strong>Top climbers:</strong> {movers(climbers, true)}</div>
-      )}
-      {fallers.length > 0 && (
-        <div>📉 <strong>Biggest drops:</strong> {movers(fallers, false)}</div>
-      )}
-      {newPeaks.length > 0 && (
-        <div>
-          🏅 <strong>New personal best:</strong>{" "}
-          {newPeaks.map((m, i) => (
-            <span key={m.username}>
-              {i > 0 && ", "}
-              <strong>{m.realName}</strong> reached #{m.rank}
-            </span>
-          ))}
-        </div>
-      )}
-      {newSprintPBs.length > 0 && (
-        <div>
-          ⏱ <strong>New 40L PB:</strong>{" "}
-          {newSprintPBs.map((m, i) => (
-            <span key={m.username}>
-              {i > 0 && ", "}
-              <strong>{m.realName}</strong> {fmtSprint(m.value)}
-              {m.achievedAt && <span style={{ color: "var(--footer-color)", fontSize: "0.85em", marginLeft: 4 }}>({fmtTimeAgo(m.achievedAt)})</span>}
-            </span>
-          ))}
-        </div>
-      )}
-      {newBlitzPBs.length > 0 && (
-        <div>
-          💥 <strong>New Blitz PB:</strong>{" "}
-          {newBlitzPBs.map((m, i) => (
-            <span key={m.username}>
-              {i > 0 && ", "}
-              <strong>{m.realName}</strong> {fmtBlitz(m.value)}
-              {m.achievedAt && <span style={{ color: "var(--footer-color)", fontSize: "0.85em", marginLeft: 4 }}>({fmtTimeAgo(m.achievedAt)})</span>}
-            </span>
-          ))}
-        </div>
-      )}
-      {newZenithPBs.length > 0 && (
-        <div>
-          🗼 <strong>New Quick Play PB:</strong>{" "}
-          {newZenithPBs.map((m, i) => (
-            <span key={m.username}>
-              {i > 0 && ", "}
-              <strong>{m.realName}</strong> {fmtZenith(m.value)}
-              {m.achievedAt && <span style={{ color: "var(--footer-color)", fontSize: "0.85em", marginLeft: 4 }}>({fmtTimeAgo(m.achievedAt)})</span>}
-            </span>
-          ))}
-        </div>
-      )}
-      {newZenithExPBs.length > 0 && (
-        <div>
-          🗼 <strong>New Expert QP PB:</strong>{" "}
-          {newZenithExPBs.map((m, i) => (
-            <span key={m.username}>
-              {i > 0 && ", "}
-              <strong>{m.realName}</strong> {fmtZenith(m.value)}
-              {m.achievedAt && <span style={{ color: "var(--footer-color)", fontSize: "0.85em", marginLeft: 4 }}>({fmtTimeAgo(m.achievedAt)})</span>}
-            </span>
-          ))}
-        </div>
-      )}
+      ))}
     </div>
   );
 }
@@ -351,8 +278,8 @@ const MODE_COLUMNS = {
   zenithBest: {
     headers: ["QP All-Time", "Expert All-Time"],
     cells: (m) => [
-      <td key="zbest"><ReplayCell replayId={m.zenithBestReplayId}>{fmtZenith(m.zenithBest)}</ReplayCell></td>,
-      <td key="zebest"><ReplayCell replayId={m.zenithExBestReplayId}>{fmtZenith(m.zenithExBest)}</ReplayCell></td>,
+      <td key="zbest">{fmtZenith(m.zenithBest)}</td>,
+      <td key="zebest">{fmtZenith(m.zenithExBest)}</td>,
     ],
   },
 };

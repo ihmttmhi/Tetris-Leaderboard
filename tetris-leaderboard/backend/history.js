@@ -328,6 +328,13 @@ function pruneAchievements() {
   recentAchievements = recentAchievements.filter((a) => a.achievedAt > cutoff);
 }
 
+// Deduplicate: don't add an achievement if an identical one already exists
+function hasDuplicate(username, type, value) {
+  return recentAchievements.some(
+    (a) => a.username === username && a.type === type && a.value === value
+  );
+}
+
 // Check for new PBs and rank changes by comparing record timestamps.
 // Called after each player fetch with their current data.
 function checkAchievements(username, realName, records) {
@@ -337,7 +344,7 @@ function checkAchievements(username, realName, records) {
 
   // 40L PB: timestamp changed = new record was set
   if (records.sprintTs && records.sprintTs !== prev.sprintTs) {
-    if (prev.sprintTs) {
+    if (prev.sprintTs && !hasDuplicate(username, "sprint", records.sprint)) {
       recentAchievements.push({
         username, realName, type: "sprint",
         value: records.sprint, achievedAt: Date.now(),
@@ -348,7 +355,7 @@ function checkAchievements(username, realName, records) {
 
   // Blitz PB
   if (records.blitzTs && records.blitzTs !== prev.blitzTs) {
-    if (prev.blitzTs) {
+    if (prev.blitzTs && !hasDuplicate(username, "blitz", records.blitz)) {
       recentAchievements.push({
         username, realName, type: "blitz",
         value: records.blitz, achievedAt: Date.now(),
@@ -359,7 +366,7 @@ function checkAchievements(username, realName, records) {
 
   // Quick Play PB (all-time best only)
   if (records.zenithBestTs && records.zenithBestTs !== prev.zenithBestTs) {
-    if (prev.zenithBestTs) {
+    if (prev.zenithBestTs && !hasDuplicate(username, "zenith", records.zenithBest)) {
       recentAchievements.push({
         username, realName, type: "zenith",
         value: records.zenithBest, achievedAt: Date.now(),
@@ -370,7 +377,7 @@ function checkAchievements(username, realName, records) {
 
   // Expert QP PB (all-time best only)
   if (records.zenithExBestTs && records.zenithExBestTs !== prev.zenithExBestTs) {
-    if (prev.zenithExBestTs) {
+    if (prev.zenithExBestTs && !hasDuplicate(username, "zenithEx", records.zenithExBest)) {
       recentAchievements.push({
         username, realName, type: "zenithEx",
         value: records.zenithExBest, achievedAt: Date.now(),
@@ -379,11 +386,13 @@ function checkAchievements(username, realName, records) {
     changed = true;
   }
 
-  // New letter rank (higher than previously known)
+  // New letter rank — only fires if higher than the HIGHEST rank ever stored
   if (records.letterRank) {
     const currentIdx = rankIndex(records.letterRank);
-    const prevIdx = rankIndex(prev.letterRank);
-    if (currentIdx > 0 && prevIdx >= 0 && currentIdx > prevIdx) {
+    // Compare against highest-ever rank, not just the last-seen rank
+    const highestIdx = rankIndex(prev.highestRank || prev.letterRank);
+    if (currentIdx > 0 && highestIdx >= 0 && currentIdx > highestIdx &&
+        !hasDuplicate(username, "rank", records.letterRank)) {
       recentAchievements.push({
         username, realName, type: "rank",
         value: records.letterRank, achievedAt: Date.now(),
@@ -392,13 +401,20 @@ function checkAchievements(username, realName, records) {
     }
   }
 
-  // Update known records
+  // Update known records — store highest-ever rank
+  const currentRankIdx = rankIndex(records.letterRank);
+  const prevHighestIdx = rankIndex(prev.highestRank || prev.letterRank);
+  const highestRank = currentRankIdx > prevHighestIdx
+    ? records.letterRank
+    : (prev.highestRank || prev.letterRank);
+
   knownRecords[username] = {
     sprintTs: records.sprintTs || prev.sprintTs,
     blitzTs: records.blitzTs || prev.blitzTs,
     zenithBestTs: records.zenithBestTs || prev.zenithBestTs,
     zenithExBestTs: records.zenithExBestTs || prev.zenithExBestTs,
     letterRank: records.letterRank || prev.letterRank,
+    highestRank: highestRank || prev.highestRank || null,
   };
 
   if (changed) {
@@ -447,25 +463,13 @@ function getHighlights(list) {
       }));
   }
 
-  // Real-time achievements from record timestamp tracking
+  // Real-time achievements from record timestamp tracking — sorted newest first
   pruneAchievements();
-  const newRanks = recentAchievements
-    .filter((a) => a.type === "rank")
-    .map((a) => ({ username: a.username, realName: a.realName, newRank: a.value, achievedAt: a.achievedAt }));
-  const newSprintPBs = recentAchievements
-    .filter((a) => a.type === "sprint")
-    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "sprint", achievedAt: a.achievedAt }));
-  const newBlitzPBs = recentAchievements
-    .filter((a) => a.type === "blitz")
-    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "blitz", achievedAt: a.achievedAt }));
-  const newZenithPBs = recentAchievements
-    .filter((a) => a.type === "zenith")
-    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "zenith", achievedAt: a.achievedAt }));
-  const newZenithExPBs = recentAchievements
-    .filter((a) => a.type === "zenithEx")
-    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "zenithEx", achievedAt: a.achievedAt }));
+  const achievements = recentAchievements
+    .map((a) => ({ username: a.username, realName: a.realName, type: a.type, value: a.value, achievedAt: a.achievedAt }))
+    .sort((a, b) => b.achievedAt - a.achievedAt);
 
-  return { climbers, fallers, newPeaks, newRanks, newSprintPBs, newBlitzPBs, newZenithPBs, newZenithExPBs };
+  return { climbers, fallers, newPeaks, achievements };
 }
 
 // Recap of the most recently completed week (compare the two latest snapshots).
