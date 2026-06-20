@@ -102,21 +102,26 @@ const fmtTimeAgo = (ts) => {
   return `${days}d ago`;
 };
 
-function fmtAchievement(a) {
+const normalizeRank = (rank) => {
+  if (!rank) return "placeholder";
+  return rank.toLowerCase().replace("+", "plus").replace("-", "minus");
+};
+
+function AchievementLine({ a }) {
   const name = a.username.toUpperCase();
   switch (a.type) {
     case "rank":
-      return `${name} achieved ${a.value.toUpperCase()} rank`;
+      return <>{name} achieved <img src={`/ranks/${normalizeRank(a.value)}.png`} alt={a.value} height="20" style={{ verticalAlign: "middle", margin: "0 4px" }} onError={(e) => { e.target.src = "/ranks/placeholder.png"; }} /> {a.value.toUpperCase()} rank</>;
     case "sprint":
-      return `${name} got a new personal best in 40 Lines with a time of ${fmtSprint(a.value)}`;
+      return <>{name} got a new personal best in 40 Lines with a time of {fmtSprint(a.value)}</>;
     case "blitz":
-      return `${name} got a new personal best in Blitz with a score of ${fmtBlitz(a.value)}`;
+      return <>{name} got a new personal best in Blitz with a score of {fmtBlitz(a.value)}</>;
     case "zenith":
-      return `${name} got a new personal best in Quick Play with an altitude of ${fmtZenith(a.value)}`;
+      return <>{name} got a new personal best in Quick Play with an altitude of {fmtZenith(a.value)}</>;
     case "zenithEx":
-      return `${name} got a new personal best in Expert Quick Play with an altitude of ${fmtZenith(a.value)}`;
+      return <>{name} got a new personal best in Expert Quick Play with an altitude of {fmtZenith(a.value)}</>;
     default:
-      return "";
+      return null;
   }
 }
 
@@ -144,7 +149,7 @@ function Highlights({ highlights, since }) {
       </div>
       {achievements.map((a, i) => (
         <div key={`${a.username}-${a.type}-${i}`} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <div style={{ fontWeight: 500 }}>{fmtAchievement(a)}</div>
+          <div style={{ fontWeight: 500 }}><AchievementLine a={a} /></div>
           <div style={{ color: "var(--footer-color)", fontSize: "0.85em" }}>{fmtTimeAgo(a.achievedAt)}</div>
         </div>
       ))}
@@ -335,10 +340,7 @@ function sortMembers(list, mode) {
 }
 
 function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, since, fetchError, sortMode, setSortMode }) {
-  const normalizeRank = (rank) => {
-    if (!rank) return "placeholder";
-    return rank.toLowerCase().replace("+", "plus").replace("-", "minus");
-  };
+
 
   const filtered = members.filter((m) =>
     (m.username ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
