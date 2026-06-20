@@ -281,6 +281,14 @@ const SORT_MODES = [
   { key: "zenithEx", label: "Expert QP" },
   { key: "zenithBest", label: "All-Time QP" },
 ];
+const MODE_PROFILE_PATH = {
+  tr: "",
+  sprint: "/40l",
+  blitz: "/blitz",
+  zenith: "/zenith",
+  zenithEx: "/zenithex",
+  zenithBest: "/zenith",
+};
 
 const MODE_COLUMNS = {
   tr: {
@@ -496,7 +504,7 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
                 <td style={{ padding: "8px", fontWeight: 500, textAlign: "center" }}>{m.realName}</td>
                 <td style={{ padding: "8px", textAlign: "center" }}>
                   <a
-                    href={`https://ch.tetr.io/u/${m.username}`}
+                    href={`https://ch.tetr.io/u/${m.username}${MODE_PROFILE_PATH[sortMode] || ""}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: "var(--link-color)", textDecoration: "none" }}
