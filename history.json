@@ -413,56 +413,49 @@
       "realName": "Ryan Sharma",
       "type": "rank",
       "value": "b",
-      "achievedAt": 1781973613992
+      "achievedAt": 1781973541724
     },
     {
       "username": "viannna",
       "realName": "Vianna Su",
       "type": "blitz",
       "value": 87934,
-      "achievedAt": 1781973732023
-    },
-    {
-      "username": "viannna",
-      "realName": "Vianna Su",
-      "type": "blitz",
-      "value": 87766,
-      "achievedAt": 1781973783990
+      "achievedAt": 1781973763762
     },
     {
       "username": "ace_spiker",
       "realName": "Ryan Sharma",
       "type": "rank",
       "value": "b",
-      "achievedAt": 1781973873973
-    },
-    {
-      "username": "viannna",
-      "realName": "Vianna Su",
-      "type": "blitz",
-      "value": 87934,
-      "achievedAt": 1781973887993
+      "achievedAt": 1781973853724
     },
     {
       "username": "viannna",
       "realName": "Vianna Su",
       "type": "blitz",
       "value": 87766,
-      "achievedAt": 1781973940017
+      "achievedAt": 1781973867701
     },
     {
       "username": "viannna",
       "realName": "Vianna Su",
       "type": "blitz",
       "value": 87934,
-      "achievedAt": 1781973992043
+      "achievedAt": 1781973919703
     },
     {
       "username": "ace_spiker",
       "realName": "Ryan Sharma",
       "type": "rank",
       "value": "b",
-      "achievedAt": 1781974185975
+      "achievedAt": 1781974009729
+    },
+    {
+      "username": "ace_spiker",
+      "realName": "Ryan Sharma",
+      "type": "rank",
+      "value": "b",
+      "achievedAt": 1781974269723
     }
   ]
 }
