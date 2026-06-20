@@ -111,7 +111,7 @@ function AchievementLine({ a }) {
   const name = a.username.toUpperCase();
   switch (a.type) {
     case "rank":
-      return <>{name} achieved <img src={`/ranks/${normalizeRank(a.value)}.png`} alt={a.value} height="20" style={{ verticalAlign: "middle", margin: "0 4px" }} onError={(e) => { e.target.src = "/ranks/placeholder.png"; }} /> {a.value.toUpperCase()} rank</>;
+      return <>{name} achieved <img src={`/ranks/${normalizeRank(a.value)}.png`} alt={a.value.toUpperCase()} height="20" style={{ verticalAlign: "middle", margin: "0 4px" }} onError={(e) => { e.target.src = "/ranks/placeholder.png"; }} /> rank</>;
     case "sprint":
       return <>{name} got a new personal best in 40 Lines with a time of {fmtSprint(a.value)}</>;
     case "blitz":
@@ -266,7 +266,7 @@ const MODE_COLUMNS = {
       <td key="zclimb">{fmtClimb(m.zenithClimbAvg, m.zenithClimbPeak)}</td>,
       <td key="zapm">{fmtNum(m.zenithAPM)}</td>,
       <td key="zpps">{fmtNum(m.zenithPPS)}</td>,
-      <td key="zenith"><ReplayCell replayId={m.zenithReplayId}>{fmtZenith(m.zenith)}</ReplayCell></td>,
+      <td key="zenith">{fmtZenith(m.zenith)}</td>,
     ],
   },
   zenithEx: {
@@ -277,7 +277,7 @@ const MODE_COLUMNS = {
       <td key="zeclimb">{fmtClimb(m.zenithExClimbAvg, m.zenithExClimbPeak)}</td>,
       <td key="zeapm">{fmtNum(m.zenithExAPM)}</td>,
       <td key="zepps">{fmtNum(m.zenithExPPS)}</td>,
-      <td key="zenithEx"><ReplayCell replayId={m.zenithExReplayId}>{fmtZenith(m.zenithEx)}</ReplayCell></td>,
+      <td key="zenithEx">{fmtZenith(m.zenithEx)}</td>,
     ],
   },
   zenithBest: {
