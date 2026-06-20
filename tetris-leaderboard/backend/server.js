@@ -181,6 +181,19 @@ async function fetchOneUser(member) {
       updated: Date.now(),
     };
 
+    // Check for new PBs and rank changes using record timestamps
+    history.checkAchievements(member.username, member.realName, {
+      sprint: sprintStats ? sprintStats.finaltime : null,
+      sprintTs: sprintRec?.ts || null,
+      blitz: blitzStats ? blitzStats.score : null,
+      blitzTs: blitzRec?.ts || null,
+      zenithBest: zenithBestRec ? zenithBestRec.results.stats.zenith.altitude : null,
+      zenithBestTs: zenithBestRec?.ts || null,
+      zenithExBest: zenithExBestRec ? zenithExBestRec.results.stats.zenith.altitude : null,
+      zenithExBestTs: zenithExBestRec?.ts || null,
+      letterRank: league.rank || null,
+    });
+
     console.log(`Updated ${member.username}`);
     notifyClients();
   } catch (err) {

@@ -94,10 +94,11 @@ function Highlights({ highlights, since }) {
   if (!highlights) return null;
   const {
     climbers = [], fallers = [], newPeaks = [], newRanks = [],
-    newSprintPBs = [], newBlitzPBs = [], newZenithPBs = [],
+    newSprintPBs = [], newBlitzPBs = [], newZenithPBs = [], newZenithExPBs = [],
   } = highlights;
   const hasAny = climbers.length || fallers.length || newPeaks.length ||
-    newRanks.length || newSprintPBs.length || newBlitzPBs.length || newZenithPBs.length;
+    newRanks.length || newSprintPBs.length || newBlitzPBs.length ||
+    newZenithPBs.length || newZenithExPBs.length;
   if (!hasAny) return null;
 
   const movers = (arr, up) =>
@@ -184,6 +185,17 @@ function Highlights({ highlights, since }) {
         <div>
           🗼 <strong>New Quick Play PB:</strong>{" "}
           {newZenithPBs.map((m, i) => (
+            <span key={m.username}>
+              {i > 0 && ", "}
+              <strong>{m.realName}</strong> {fmtZenith(m.value)}
+            </span>
+          ))}
+        </div>
+      )}
+      {newZenithExPBs.length > 0 && (
+        <div>
+          🗼 <strong>New Expert QP PB:</strong>{" "}
+          {newZenithExPBs.map((m, i) => (
             <span key={m.username}>
               {i > 0 && ", "}
               <strong>{m.realName}</strong> {fmtZenith(m.value)}

@@ -29,6 +29,10 @@ const MAX_SNAPSHOTS = 8;
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 let snapshots = []; // [{ weekStart, ranks, names, letterRanks?, bestSprints?, bestBlitz?, bestZenith? }]
+let knownRecords = {}; // { username: { sprintTs, blitzTs, zenithTs, zenithExTs, letterRank } }
+let recentAchievements = []; // [{ username, realName, type, value, achievedAt }]
+const MAX_ACHIEVEMENTS = 20;
+const ACHIEVEMENT_TTL_MS = 7 * 24 * 60 * 60 * 1000; // keep for 7 days
 let remoteSha = null; // sha of history.json on the data branch (for updates)
 let loaded = false;
 let persisting = false;
@@ -106,7 +110,14 @@ async function loadFromGitHub() {
     const res = await axios.get(url, { headers: ghHeaders() });
     remoteSha = res.data.sha;
     const json = Buffer.from(res.data.content, "base64").toString("utf-8");
-    snapshots = JSON.parse(json);
+    const data = JSON.parse(json);
+    if (Array.isArray(data)) {
+      snapshots = data;
+    } else {
+      snapshots = data.snapshots || [];
+      knownRecords = data.knownRecords || {};
+      recentAchievements = data.recentAchievements || [];
+    }
     console.log(`Loaded ${snapshots.length} weekly snapshot(s) from GitHub`);
   } catch (err) {
     if (err.response?.status === 404) {
@@ -124,7 +135,8 @@ async function saveToGitHub() {
   const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${encodeURIComponent(
     DATA_PATH
   )}`;
-  const content = Buffer.from(JSON.stringify(snapshots, null, 2)).toString("base64");
+  const persistData = { snapshots, knownRecords, recentAchievements };
+  const content = Buffer.from(JSON.stringify(persistData, null, 2)).toString("base64");
   const body = {
     message: `Update leaderboard history (${weekStartKey()})`,
     content,
@@ -158,7 +170,14 @@ async function saveToGitHub() {
 
 function loadLocal() {
   try {
-    snapshots = JSON.parse(fs.readFileSync(LOCAL_FILE, "utf-8"));
+    const data = JSON.parse(fs.readFileSync(LOCAL_FILE, "utf-8"));
+    if (Array.isArray(data)) {
+      snapshots = data;
+    } else {
+      snapshots = data.snapshots || [];
+      knownRecords = data.knownRecords || {};
+      recentAchievements = data.recentAchievements || [];
+    }
     console.log(`Loaded ${snapshots.length} weekly snapshot(s) from local file`);
   } catch (err) {
     console.warn("Could not load local history (starting fresh):", err.message);
@@ -168,7 +187,8 @@ function loadLocal() {
 
 function saveLocal() {
   try {
-    fs.writeFileSync(LOCAL_FILE, JSON.stringify(snapshots, null, 2));
+    const persistData = { snapshots, knownRecords, recentAchievements };
+    fs.writeFileSync(LOCAL_FILE, JSON.stringify(persistData, null, 2));
   } catch (err) {
     console.error("Failed to write local history:", err.message);
   }
@@ -302,38 +322,95 @@ function getBestLetterRank(username) {
   return best;
 }
 
-// Best 40L time (lower = better), Blitz score (higher = better),
-// and Zenith altitude (higher = better) across all snapshots.
-function getHistoricalBestSprint(username) {
-  let best = null;
-  for (const s of snapshots) {
-    if (!s.bestSprints) continue;
-    const v = s.bestSprints[username];
-    if (v != null && (best == null || v < best)) best = v;
-  }
-  return best;
-}
-function getHistoricalBestBlitz(username) {
-  let best = null;
-  for (const s of snapshots) {
-    if (!s.bestBlitz) continue;
-    const v = s.bestBlitz[username];
-    if (v != null && (best == null || v > best)) best = v;
-  }
-  return best;
-}
-function getHistoricalBestZenith(username) {
-  let best = null;
-  for (const s of snapshots) {
-    if (!s.bestZenith) continue;
-    const v = s.bestZenith[username];
-    if (v != null && (best == null || v > best)) best = v;
-  }
-  return best;
+// Prune achievements older than TTL
+function pruneAchievements() {
+  const cutoff = Date.now() - ACHIEVEMENT_TTL_MS;
+  recentAchievements = recentAchievements.filter((a) => a.achievedAt > cutoff);
 }
 
-// Top-of-page highlights derived from the live (sorted) member list:
-// biggest climbers/drops this week and players hitting a new personal-best rank.
+// Check for new PBs and rank changes by comparing record timestamps.
+// Called after each player fetch with their current data.
+function checkAchievements(username, realName, records) {
+  if (!loaded) return;
+  const prev = knownRecords[username] || {};
+  let changed = false;
+
+  // 40L PB: timestamp changed = new record was set
+  if (records.sprintTs && records.sprintTs !== prev.sprintTs) {
+    if (prev.sprintTs) {
+      recentAchievements.push({
+        username, realName, type: "sprint",
+        value: records.sprint, achievedAt: Date.now(),
+      });
+    }
+    changed = true;
+  }
+
+  // Blitz PB
+  if (records.blitzTs && records.blitzTs !== prev.blitzTs) {
+    if (prev.blitzTs) {
+      recentAchievements.push({
+        username, realName, type: "blitz",
+        value: records.blitz, achievedAt: Date.now(),
+      });
+    }
+    changed = true;
+  }
+
+  // Quick Play PB (all-time best only)
+  if (records.zenithBestTs && records.zenithBestTs !== prev.zenithBestTs) {
+    if (prev.zenithBestTs) {
+      recentAchievements.push({
+        username, realName, type: "zenith",
+        value: records.zenithBest, achievedAt: Date.now(),
+      });
+    }
+    changed = true;
+  }
+
+  // Expert QP PB (all-time best only)
+  if (records.zenithExBestTs && records.zenithExBestTs !== prev.zenithExBestTs) {
+    if (prev.zenithExBestTs) {
+      recentAchievements.push({
+        username, realName, type: "zenithEx",
+        value: records.zenithExBest, achievedAt: Date.now(),
+      });
+    }
+    changed = true;
+  }
+
+  // New letter rank (higher than previously known)
+  if (records.letterRank) {
+    const currentIdx = rankIndex(records.letterRank);
+    const prevIdx = rankIndex(prev.letterRank);
+    if (currentIdx > 0 && prevIdx >= 0 && currentIdx > prevIdx) {
+      recentAchievements.push({
+        username, realName, type: "rank",
+        value: records.letterRank, achievedAt: Date.now(),
+      });
+      changed = true;
+    }
+  }
+
+  // Update known records
+  knownRecords[username] = {
+    sprintTs: records.sprintTs || prev.sprintTs,
+    blitzTs: records.blitzTs || prev.blitzTs,
+    zenithBestTs: records.zenithBestTs || prev.zenithBestTs,
+    zenithExBestTs: records.zenithExBestTs || prev.zenithExBestTs,
+    letterRank: records.letterRank || prev.letterRank,
+  };
+
+  if (changed) {
+    pruneAchievements();
+    if (recentAchievements.length > MAX_ACHIEVEMENTS) {
+      recentAchievements = recentAchievements.slice(-MAX_ACHIEVEMENTS);
+    }
+    persist();
+  }
+}
+
+// Top-of-page highlights derived from movement arrows and real-time achievements.
 function getHighlights(list) {
   const mapMover = (m) => ({
     username: m.username,
@@ -370,59 +447,25 @@ function getHighlights(list) {
       }));
   }
 
-  // Players whose current TETR.IO letter rank is higher than any previously
-  // recorded snapshot — i.e. they achieved a new rank since tracking began.
-  let newRanks = [];
-  if (snapshots.length >= 1) {
-    newRanks = list
-      .filter((m) => {
-        const currentIdx = rankIndex(m.letterRank);
-        if (currentIdx <= 0) return false; // unranked / unknown
-        const bestIdx = getBestLetterRank(m.username);
-        return bestIdx >= 0 && currentIdx > bestIdx;
-      })
-      .sort((a, b) => rankIndex(b.letterRank) - rankIndex(a.letterRank))
-      .map((m) => ({
-        username: m.username,
-        realName: m.realName,
-        newRank: m.letterRank,
-      }));
-  }
+  // Real-time achievements from record timestamp tracking
+  pruneAchievements();
+  const newRanks = recentAchievements
+    .filter((a) => a.type === "rank")
+    .map((a) => ({ username: a.username, realName: a.realName, newRank: a.value }));
+  const newSprintPBs = recentAchievements
+    .filter((a) => a.type === "sprint")
+    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "sprint" }));
+  const newBlitzPBs = recentAchievements
+    .filter((a) => a.type === "blitz")
+    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "blitz" }));
+  const newZenithPBs = recentAchievements
+    .filter((a) => a.type === "zenith")
+    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "zenith" }));
+  const newZenithExPBs = recentAchievements
+    .filter((a) => a.type === "zenithEx")
+    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "zenithEx" }));
 
-  // Personal best highlights for 40L, Blitz, Zenith
-  let newSprintPBs = [];
-  let newBlitzPBs = [];
-  let newZenithPBs = [];
-  if (snapshots.length >= 1) {
-    newSprintPBs = list
-      .filter((m) => {
-        if (m.sprint == null) return false;
-        const best = getHistoricalBestSprint(m.username);
-        return best != null && m.sprint < best;
-      })
-      .sort((a, b) => a.sprint - b.sprint)
-      .map((m) => ({ username: m.username, realName: m.realName, value: m.sprint, type: "sprint" }));
-
-    newBlitzPBs = list
-      .filter((m) => {
-        if (m.blitz == null) return false;
-        const best = getHistoricalBestBlitz(m.username);
-        return best != null && m.blitz > best;
-      })
-      .sort((a, b) => b.blitz - a.blitz)
-      .map((m) => ({ username: m.username, realName: m.realName, value: m.blitz, type: "blitz" }));
-
-    newZenithPBs = list
-      .filter((m) => {
-        if (m.zenith == null) return false;
-        const best = getHistoricalBestZenith(m.username);
-        return best != null && m.zenith > best;
-      })
-      .sort((a, b) => b.zenith - a.zenith)
-      .map((m) => ({ username: m.username, realName: m.realName, value: m.zenith, type: "zenith" }));
-  }
-
-  return { climbers, fallers, newPeaks, newRanks, newSprintPBs, newBlitzPBs, newZenithPBs };
+  return { climbers, fallers, newPeaks, newRanks, newSprintPBs, newBlitzPBs, newZenithPBs, newZenithExPBs };
 }
 
 // Recap of the most recently completed week (compare the two latest snapshots).
@@ -448,6 +491,7 @@ function getRecap() {
 module.exports = {
   init,
   maybeRollover,
+  checkAchievements,
   getMovement,
   getRecap,
   getHighlights,
