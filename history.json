@@ -272,7 +272,7 @@
     },
     "viannna": {
       "sprintTs": "2026-06-12T23:37:52.276Z",
-      "blitzTs": "2026-06-20T16:41:39.561Z",
+      "blitzTs": "2026-06-17T20:16:34.852Z",
       "zenithBestTs": "2026-05-17T20:48:58.130Z",
       "letterRank": "b"
     },
@@ -413,35 +413,42 @@
       "realName": "Ryan Sharma",
       "type": "rank",
       "value": "b",
-      "achievedAt": 1781973541724
+      "achievedAt": 1781973613992
     },
     {
       "username": "viannna",
       "realName": "Vianna Su",
       "type": "blitz",
       "value": 87934,
-      "achievedAt": 1781973763762
-    },
-    {
-      "username": "ace_spiker",
-      "realName": "Ryan Sharma",
-      "type": "rank",
-      "value": "b",
-      "achievedAt": 1781973853724
+      "achievedAt": 1781973732023
     },
     {
       "username": "viannna",
       "realName": "Vianna Su",
       "type": "blitz",
       "value": 87766,
-      "achievedAt": 1781973867701
+      "achievedAt": 1781973783990
+    },
+    {
+      "username": "ace_spiker",
+      "realName": "Ryan Sharma",
+      "type": "rank",
+      "value": "b",
+      "achievedAt": 1781973873973
     },
     {
       "username": "viannna",
       "realName": "Vianna Su",
       "type": "blitz",
       "value": 87934,
-      "achievedAt": 1781973919703
+      "achievedAt": 1781973887993
+    },
+    {
+      "username": "viannna",
+      "realName": "Vianna Su",
+      "type": "blitz",
+      "value": 87766,
+      "achievedAt": 1781973940017
     }
   ]
 }
