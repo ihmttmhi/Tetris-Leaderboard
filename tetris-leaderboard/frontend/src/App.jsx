@@ -90,6 +90,18 @@ const fmtSprint = (ms) => {
 const fmtBlitz = (s) => (s == null ? "\u2013" : s.toLocaleString());
 const fmtZenith = (a) => (a == null ? "\u2013" : `${a.toFixed(1)}m`);
 
+const fmtTimeAgo = (ts) => {
+  if (!ts) return "";
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}hr${hrs > 1 ? "s" : ""} ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
+};
+
 function Highlights({ highlights, since }) {
   if (!highlights) return null;
   const {
@@ -115,17 +127,18 @@ function Highlights({ highlights, since }) {
   return (
     <div
       style={{
-        margin: "10px 0",
-        padding: "14px 16px",
+        margin: "10px 0 20px",
+        padding: "16px 20px",
         border: "1px solid var(--table-border)",
-        borderRadius: "10px",
-        background: "var(--table-header-bg)",
+        borderRadius: "12px",
+        background: "linear-gradient(135deg, var(--table-header-bg), var(--table-row-even))",
         display: "flex",
         flexDirection: "column",
-        gap: 6
+        gap: 6,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
       }}
     >
-      <div style={{ fontWeight: 700 }}>
+      <div style={{ fontWeight: 700, fontSize: "1.05em", marginBottom: 4 }}>
         ✨ {since ? `Changes since ${fmtDate(since)}` : "This week's highlights"}
       </div>
       {newRanks.length > 0 && (
@@ -138,6 +151,7 @@ function Highlights({ highlights, since }) {
               <span style={{ fontWeight: 700, textTransform: "uppercase" }}>
                 {m.newRank}
               </span>
+              {m.achievedAt && <span style={{ color: "var(--footer-color)", fontSize: "0.85em", marginLeft: 4 }}>({fmtTimeAgo(m.achievedAt)})</span>}
             </span>
           ))}
         </div>
@@ -166,6 +180,7 @@ function Highlights({ highlights, since }) {
             <span key={m.username}>
               {i > 0 && ", "}
               <strong>{m.realName}</strong> {fmtSprint(m.value)}
+              {m.achievedAt && <span style={{ color: "var(--footer-color)", fontSize: "0.85em", marginLeft: 4 }}>({fmtTimeAgo(m.achievedAt)})</span>}
             </span>
           ))}
         </div>
@@ -177,6 +192,7 @@ function Highlights({ highlights, since }) {
             <span key={m.username}>
               {i > 0 && ", "}
               <strong>{m.realName}</strong> {fmtBlitz(m.value)}
+              {m.achievedAt && <span style={{ color: "var(--footer-color)", fontSize: "0.85em", marginLeft: 4 }}>({fmtTimeAgo(m.achievedAt)})</span>}
             </span>
           ))}
         </div>
@@ -188,6 +204,7 @@ function Highlights({ highlights, since }) {
             <span key={m.username}>
               {i > 0 && ", "}
               <strong>{m.realName}</strong> {fmtZenith(m.value)}
+              {m.achievedAt && <span style={{ color: "var(--footer-color)", fontSize: "0.85em", marginLeft: 4 }}>({fmtTimeAgo(m.achievedAt)})</span>}
             </span>
           ))}
         </div>
@@ -199,6 +216,7 @@ function Highlights({ highlights, since }) {
             <span key={m.username}>
               {i > 0 && ", "}
               <strong>{m.realName}</strong> {fmtZenith(m.value)}
+              {m.achievedAt && <span style={{ color: "var(--footer-color)", fontSize: "0.85em", marginLeft: 4 }}>({fmtTimeAgo(m.achievedAt)})</span>}
             </span>
           ))}
         </div>
@@ -226,6 +244,27 @@ const fmtClimb = (avg, peak) => {
   const p = peak != null ? ` (peak ${Math.floor(peak)})` : "";
   return `${avg.toFixed(2)}${p}`;
 };
+const fmtRecord = (won, played) => {
+  if (!played) return "\u2013";
+  const pct = ((won / played) * 100).toFixed(1);
+  return `${won.toLocaleString()}/${played.toLocaleString()} (${pct}%)`;
+};
+const fmtGlicko = (glicko, rd) => {
+  if (glicko == null) return "\u2013";
+  const rdStr = rd != null ? `\u00B1${Math.round(rd)}` : "";
+  return `${Math.round(glicko)}${rdStr}`;
+};
+const replayLink = (replayId) =>
+  replayId ? `https://tetr.io/#R:${replayId}` : null;
+const ReplayCell = ({ value, replayId, children }) => {
+  const url = replayLink(replayId);
+  if (!url) return <>{children}</>;
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--link-color)", textDecoration: "none" }}>
+      {children}
+    </a>
+  );
+};
 const fmtTimeMM = (ms) => {
   if (ms == null) return "\u2013";
   const totalSec = ms / 1000;
@@ -245,15 +284,17 @@ const SORT_MODES = [
 
 const MODE_COLUMNS = {
   tr: {
-    headers: ["TR", "Letter Rank", "PPS", "APM", "VS", "Local", "World"],
+    headers: ["Record", "APM", "PPS", "VS", "Glicko", "TR"],
     cells: (m, normalizeRank, fmtStanding) => [
-      <td key="tr">{fmtTR(m)}</td>,
-      <td key="lr"><img src={`/ranks/${normalizeRank(m.letterRank)}.png`} alt={m.letterRank} height="28" onError={(e) => { e.target.src = "/ranks/placeholder.png"; }} /></td>,
-      <td key="pps">{m.pps}</td>,
-      <td key="apm">{m.apm}</td>,
-      <td key="vs">{m.vs}</td>,
-      <td key="local">{fmtStanding(m.standing_local)}</td>,
-      <td key="world">{fmtStanding(m.standing_world)}</td>,
+      <td key="rec">{fmtRecord(m.gamesWon, m.gamesPlayed)}</td>,
+      <td key="apm">{fmtNum(m.apm)}</td>,
+      <td key="pps">{fmtNum(m.pps)}</td>,
+      <td key="vs">{fmtNum(m.vs)}</td>,
+      <td key="glicko">{fmtGlicko(m.glicko, m.rd)}</td>,
+      <td key="tr">
+        {fmtTR(m)}{" "}
+        <img src={`/ranks/${normalizeRank(m.letterRank)}.png`} alt={m.letterRank} height="20" style={{ verticalAlign: "middle" }} onError={(e) => { e.target.src = "/ranks/placeholder.png"; }} />
+      </td>,
     ],
   },
   sprint: {
@@ -264,7 +305,7 @@ const MODE_COLUMNS = {
       <td key="skps">{fmtNum(m.sprintKPS)}</td>,
       <td key="spc">{fmtInt(m.sprintPieces)}</td>,
       <td key="spps">{fmtNum(m.sprintPPS)}</td>,
-      <td key="sprint">{fmtSprint(m.sprint)}</td>,
+      <td key="sprint"><ReplayCell replayId={m.sprintReplayId}>{fmtSprint(m.sprint)}</ReplayCell></td>,
     ],
   },
   blitz: {
@@ -275,7 +316,7 @@ const MODE_COLUMNS = {
       <td key="blvl">{fmtInt(m.blitzLevel)}</td>,
       <td key="bpc">{fmtInt(m.blitzPieces)}</td>,
       <td key="bpps">{fmtNum(m.blitzPPS)}</td>,
-      <td key="blitz">{fmtBlitz(m.blitz)}</td>,
+      <td key="blitz"><ReplayCell replayId={m.blitzReplayId}>{fmtBlitz(m.blitz)}</ReplayCell></td>,
     ],
   },
   zenith: {
@@ -286,7 +327,7 @@ const MODE_COLUMNS = {
       <td key="zclimb">{fmtClimb(m.zenithClimbAvg, m.zenithClimbPeak)}</td>,
       <td key="zapm">{fmtNum(m.zenithAPM)}</td>,
       <td key="zpps">{fmtNum(m.zenithPPS)}</td>,
-      <td key="zenith">{fmtZenith(m.zenith)}</td>,
+      <td key="zenith"><ReplayCell replayId={m.zenithReplayId}>{fmtZenith(m.zenith)}</ReplayCell></td>,
     ],
   },
   zenithEx: {
@@ -297,14 +338,14 @@ const MODE_COLUMNS = {
       <td key="zeclimb">{fmtClimb(m.zenithExClimbAvg, m.zenithExClimbPeak)}</td>,
       <td key="zeapm">{fmtNum(m.zenithExAPM)}</td>,
       <td key="zepps">{fmtNum(m.zenithExPPS)}</td>,
-      <td key="zenithEx">{fmtZenith(m.zenithEx)}</td>,
+      <td key="zenithEx"><ReplayCell replayId={m.zenithExReplayId}>{fmtZenith(m.zenithEx)}</ReplayCell></td>,
     ],
   },
   zenithBest: {
     headers: ["QP All-Time", "Expert All-Time"],
     cells: (m) => [
-      <td key="zbest">{fmtZenith(m.zenithBest)}</td>,
-      <td key="zebest">{fmtZenith(m.zenithExBest)}</td>,
+      <td key="zbest"><ReplayCell replayId={m.zenithBestReplayId}>{fmtZenith(m.zenithBest)}</ReplayCell></td>,
+      <td key="zebest"><ReplayCell replayId={m.zenithExBestReplayId}>{fmtZenith(m.zenithExBest)}</ReplayCell></td>,
     ],
   },
 };
@@ -372,7 +413,7 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
 
   return (
     <div>
-      <h1>UTS Tetris Elite Leaderboard</h1>
+      <h1 style={{ fontSize: "1.8em", letterSpacing: "-0.02em", marginBottom: 16 }}>UTS Tetris Elite Leaderboard</h1>
 
       {fetchError && (
         <div
@@ -392,20 +433,22 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
       <Highlights highlights={highlights} since={since} />
       <Recap recap={recap} />
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 12 }}>
-        <span style={{ fontWeight: 600 }}>Rank by:</span>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 16 }}>
+        <span style={{ fontWeight: 600, fontSize: "0.9em", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--footer-color)" }}>Rank by:</span>
         {SORT_MODES.map((mode) => (
           <button
             key={mode.key}
             onClick={() => setSortMode(mode.key)}
             style={{
-              padding: "6px 14px",
-              borderRadius: "8px",
+              padding: "7px 16px",
+              borderRadius: "20px",
               border: sortMode === mode.key ? "2px solid var(--link-color)" : "1px solid var(--table-border)",
-              background: sortMode === mode.key ? "var(--link-color)" : "var(--table-header-bg)",
+              background: sortMode === mode.key ? "var(--link-color)" : "transparent",
               color: sortMode === mode.key ? "#fff" : "var(--text-color)",
               fontWeight: sortMode === mode.key ? 700 : 400,
               cursor: "pointer",
+              fontSize: "0.9em",
+              transition: "all 0.15s",
             }}
           >
             {mode.label}
@@ -429,54 +472,50 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
         }}
       />
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead style={{ background: "var(--table-header-bg)" }}>
-          <tr>
-            <th>Rank</th>
-            <th>Change</th>
-            <th>Real Name</th>
-            <th>Username</th>
-            <th>Grade</th>
-            {MODE_COLUMNS[sortMode].headers.map((h) => <th key={h}>{h}</th>)}
-          </tr>
-        </thead>
-
-        <tbody>
-          {filtered.map((m, i) => (
-            <tr
-              key={m.username}
-              style={{
-                background:
-                  i % 2 === 0
-                    ? "var(--table-row-even)"
-                    : "var(--table-row-odd)"
-              }}
-            >
-              <td>{sortMode === "tr" ? (m.clubRank ?? i + 1) : (m.sortedRank ?? i + 1)}</td>
-              <td><Movement move={m.move} /></td>
-              <td>{m.realName}</td>
-
-              <td>
-                <a
-                  href={`https://ch.tetr.io/u/${m.username}/league`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    color: "var(--link-color)",
-                    textDecoration: "none"
-                  }}
-                >
-                  {m.username}
-                </a>
-              </td>
-
-              <td>{m.grade || "-"}</td>
-
-              {MODE_COLUMNS[sortMode].cells(m, normalizeRank, fmtStanding)}
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 2px" }}>
+          <thead>
+            <tr style={{ background: "var(--table-header-bg)" }}>
+              <th style={{ padding: "10px 8px", textAlign: "left", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>#</th>
+              <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>Change</th>
+              <th style={{ padding: "10px 8px", textAlign: "left", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>Player</th>
+              <th style={{ padding: "10px 8px", textAlign: "left", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>Username</th>
+              {MODE_COLUMNS[sortMode].headers.map((h) => <th key={h} style={{ padding: "10px 8px", textAlign: "right", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>{h}</th>)}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {filtered.map((m, i) => (
+              <tr
+                key={m.username}
+                style={{
+                  background: i % 2 === 0 ? "var(--table-row-even)" : "var(--table-row-odd)",
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "var(--table-border)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = i % 2 === 0 ? "var(--table-row-even)" : "var(--table-row-odd)"}
+              >
+                <td style={{ padding: "8px", fontWeight: 700, color: "var(--footer-color)" }}>{sortMode === "tr" ? (m.clubRank ?? i + 1) : (m.sortedRank ?? i + 1)}</td>
+                <td style={{ padding: "8px", textAlign: "center" }}><Movement move={m.move} /></td>
+                <td style={{ padding: "8px", fontWeight: 500 }}>{m.realName}</td>
+                <td style={{ padding: "8px" }}>
+                  <a
+                    href={`https://ch.tetr.io/u/${m.username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--link-color)", textDecoration: "none" }}
+                  >
+                    {m.username}
+                  </a>
+                </td>
+                {MODE_COLUMNS[sortMode].cells(m, normalizeRank, fmtStanding).map((cell, ci) => (
+                  React.cloneElement(cell, { style: { ...cell.props.style, padding: "8px", textAlign: "right" } })
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

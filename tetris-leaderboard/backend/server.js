@@ -142,7 +142,12 @@ async function fetchOneUser(member) {
       vs: league.vs || 0,
       standing_world: league.standing || 0,
       standing_local: league.standing_local || 0,
+      gamesPlayed: league.gamesplayed || 0,
+      gamesWon: league.gameswon || 0,
+      glicko: league.glicko || null,
+      rd: league.rd || null,
       // 40L (matches TETR.IO: Finesse, KPP, KPS, Pieces, PPS, Time)
+      sprintReplayId: sprintRec?.replayid || null,
       sprint: sprintStats ? sprintStats.finaltime : null,
       sprintPPS: sprintAgg?.pps ?? null,
       sprintPieces: sprintPieces || null,
@@ -151,6 +156,7 @@ async function fetchOneUser(member) {
       sprintKPP: sprintPieces > 0 ? sprintInputs / sprintPieces : null,
       sprintKPS: sprintTime > 0 ? sprintInputs / (sprintTime / 1000) : null,
       // Blitz (matches TETR.IO: Finesse, SPP, Level, Pieces, PPS, Score)
+      blitzReplayId: blitzRec?.replayid || null,
       blitz: blitzStats ? blitzStats.score : null,
       blitzPPS: blitzAgg?.pps ?? null,
       blitzPieces: blitzPieces || null,
@@ -159,6 +165,7 @@ async function fetchOneUser(member) {
       blitzFinessePct: blitzPieces > 0 ? (blitzPerfect / blitzPieces) * 100 : null,
       blitzSPP: blitzPieces > 0 ? blitzScore / blitzPieces : null,
       // Zenith QP (matches TETR.IO: Time, KOs, Climb speed, APM, PPS, Altitude)
+      zenithReplayId: zenithRec?.replayid || null,
       zenith: zenithStats ? zenithStats.zenith.altitude : null,
       zenithPPS: zenithAgg?.pps ?? null,
       zenithAPM: zenithAgg?.apm ?? null,
@@ -167,8 +174,10 @@ async function fetchOneUser(member) {
       zenithClimbAvg: zenithStats?.zenith?.rank ?? null,
       zenithClimbPeak: zenithStats?.zenith?.peakrank ?? null,
       // Zenith all-time best
+      zenithBestReplayId: zenithBestRec?.replayid || null,
       zenithBest: zenithBestRec ? zenithBestRec.results.stats.zenith.altitude : null,
       // Zenith Expert (matches TETR.IO: Time, KOs, Climb speed, APM, PPS, Altitude)
+      zenithExReplayId: zenithExRec?.replayid || null,
       zenithEx: zenithExStats ? zenithExStats.zenith.altitude : null,
       zenithExPPS: zenithExAgg?.pps ?? null,
       zenithExAPM: zenithExAgg?.apm ?? null,
@@ -177,6 +186,7 @@ async function fetchOneUser(member) {
       zenithExClimbAvg: zenithExStats?.zenith?.rank ?? null,
       zenithExClimbPeak: zenithExStats?.zenith?.peakrank ?? null,
       // Zenith Expert all-time best
+      zenithExBestReplayId: zenithExBestRec?.replayid || null,
       zenithExBest: zenithExBestRec ? zenithExBestRec.results.stats.zenith.altitude : null,
       updated: Date.now(),
     };

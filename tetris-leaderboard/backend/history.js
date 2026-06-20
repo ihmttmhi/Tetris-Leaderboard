@@ -451,19 +451,19 @@ function getHighlights(list) {
   pruneAchievements();
   const newRanks = recentAchievements
     .filter((a) => a.type === "rank")
-    .map((a) => ({ username: a.username, realName: a.realName, newRank: a.value }));
+    .map((a) => ({ username: a.username, realName: a.realName, newRank: a.value, achievedAt: a.achievedAt }));
   const newSprintPBs = recentAchievements
     .filter((a) => a.type === "sprint")
-    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "sprint" }));
+    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "sprint", achievedAt: a.achievedAt }));
   const newBlitzPBs = recentAchievements
     .filter((a) => a.type === "blitz")
-    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "blitz" }));
+    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "blitz", achievedAt: a.achievedAt }));
   const newZenithPBs = recentAchievements
     .filter((a) => a.type === "zenith")
-    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "zenith" }));
+    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "zenith", achievedAt: a.achievedAt }));
   const newZenithExPBs = recentAchievements
     .filter((a) => a.type === "zenithEx")
-    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "zenithEx" }));
+    .map((a) => ({ username: a.username, realName: a.realName, value: a.value, type: "zenithEx", achievedAt: a.achievedAt }));
 
   return { climbers, fallers, newPeaks, newRanks, newSprintPBs, newBlitzPBs, newZenithPBs, newZenithExPBs };
 }
