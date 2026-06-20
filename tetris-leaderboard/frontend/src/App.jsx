@@ -266,7 +266,7 @@ const MODE_COLUMNS = {
       <td key="zclimb">{fmtClimb(m.zenithClimbAvg, m.zenithClimbPeak)}</td>,
       <td key="zapm">{fmtNum(m.zenithAPM)}</td>,
       <td key="zpps">{fmtNum(m.zenithPPS)}</td>,
-      <td key="zenith"><ReplayCell replayId={m.zenithReplayId}>{fmtZenith(m.zenith)}</ReplayCell></td>,
+      <td key="zenith">{fmtZenith(m.zenith)}</td>,
     ],
   },
   zenithEx: {
@@ -277,7 +277,7 @@ const MODE_COLUMNS = {
       <td key="zeclimb">{fmtClimb(m.zenithExClimbAvg, m.zenithExClimbPeak)}</td>,
       <td key="zeapm">{fmtNum(m.zenithExAPM)}</td>,
       <td key="zepps">{fmtNum(m.zenithExPPS)}</td>,
-      <td key="zenithEx"><ReplayCell replayId={m.zenithExReplayId}>{fmtZenith(m.zenithEx)}</ReplayCell></td>,
+      <td key="zenithEx">{fmtZenith(m.zenithEx)}</td>,
     ],
   },
   zenithBest: {
