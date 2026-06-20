@@ -111,7 +111,7 @@ function AchievementLine({ a }) {
   const name = a.username.toUpperCase();
   switch (a.type) {
     case "rank":
-      return <>{name} achieved <img src={`/ranks/${normalizeRank(a.value)}.png`} alt={a.value} height="20" style={{ verticalAlign: "middle", margin: "0 4px" }} onError={(e) => { e.target.src = "/ranks/placeholder.png"; }} /> {a.value.toUpperCase()} rank</>;
+      return <>{name} achieved <img src={`/ranks/${normalizeRank(a.value)}.png`} alt={a.value.toUpperCase()} height="20" style={{ verticalAlign: "middle", margin: "0 4px" }} onError={(e) => { e.target.src = "/ranks/placeholder.png"; }} /> rank</>;
     case "sprint":
       return <>{name} got a new personal best in 40 Lines with a time of {fmtSprint(a.value)}</>;
     case "blitz":
