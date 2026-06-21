@@ -400,9 +400,9 @@ function Leaderboard({ members, searchTerm, setSearchTerm, highlights, since, fe
           <thead>
             <tr style={{ background: "var(--table-header-bg)" }}>
               <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>Rank</th>
-              <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>
+              {sortMode === "tr" && <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>
                 Change{since && <div style={{ fontSize: "0.7em", fontWeight: 400, textTransform: "none", letterSpacing: 0, color: "var(--footer-color)", marginTop: 2 }}>since {fmtDate(since)}</div>}
-              </th>
+              </th>}
               <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>Player</th>
               <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>Username</th>
               {MODE_COLUMNS[sortMode].headers.map((h) => <th key={h} style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>{h}</th>)}
@@ -418,7 +418,7 @@ function Leaderboard({ members, searchTerm, setSearchTerm, highlights, since, fe
                 }}
               >
                 <td style={{ padding: "8px", fontWeight: 700, color: "var(--footer-color)", textAlign: "center" }}>{sortMode === "tr" ? (m.clubRank ?? i + 1) : (m.sortedRank ?? i + 1)}</td>
-                <td style={{ padding: "8px", textAlign: "center" }}><Movement move={m.move} /></td>
+                {sortMode === "tr" && <td style={{ padding: "8px", textAlign: "center" }}><Movement move={m.move} /></td>}
                 <td style={{ padding: "8px", fontWeight: 500, textAlign: "center" }}>{m.realName}</td>
                 <td style={{ padding: "8px", textAlign: "center" }}>
                   <a
