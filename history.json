@@ -108,378 +108,291 @@
         "snowyowlcake": "Sarah Ding",
         "comet35": "Adam Weiner"
       }
-    }
-  ],
-  "knownRecords": {
-    "tetrismountain": {
-      "sprintTs": "2026-05-05T17:34:07.418Z",
-      "blitzTs": "2026-05-05T17:37:00.936Z",
-      "zenithBestTs": "2026-05-22T18:56:20.326Z",
-      "letterRank": "b+",
-      "highestRank": "b+"
-    },
-    "tetrusmountain": {
-      "zenithBestTs": "2026-01-23T14:49:07.750Z",
-      "letterRank": "b-",
-      "highestRank": "b-"
-    },
-    "not_bob": {
-      "sprintTs": "2026-02-11T03:01:24.229Z",
-      "blitzTs": "2026-02-12T03:38:59.039Z",
-      "zenithBestTs": "2026-06-05T20:37:24.770Z",
-      "letterRank": "c+",
-      "highestRank": "c+"
-    },
-    "peytonrexx1": {
-      "sprintTs": "2026-03-07T03:31:20.466Z",
-      "blitzTs": "2026-01-30T01:52:01.706Z",
-      "zenithBestTs": "2026-06-09T18:55:40.265Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "tetraplatypus": {
-      "sprintTs": "2026-05-11T19:35:47.320Z",
-      "blitzTs": "2026-03-31T16:23:25.611Z",
-      "zenithBestTs": "2026-05-30T15:47:38.068Z",
-      "letterRank": "c",
-      "highestRank": "c"
-    },
-    "caloriekirk": {
-      "zenithBestTs": "2026-02-24T17:08:03.763Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "peytonrexx": {
-      "sprintTs": "2026-06-04T20:59:57.356Z",
-      "blitzTs": "2026-05-29T13:53:06.099Z",
-      "zenithBestTs": "2026-06-13T02:08:48.380Z",
-      "letterRank": "b+",
-      "highestRank": "b+"
-    },
-    "revl": {
-      "sprintTs": "2026-06-11T16:36:35.582Z",
-      "blitzTs": "2026-06-12T17:56:56.106Z",
-      "zenithBestTs": "2026-05-23T15:11:17.360Z",
-      "letterRank": "a+",
-      "highestRank": "a+"
-    },
-    "pumpkinpoet": {
-      "sprintTs": "2026-05-29T13:24:08.549Z",
-      "blitzTs": "2026-04-01T16:00:13.350Z",
-      "zenithBestTs": "2026-05-05T18:11:50.205Z",
-      "letterRank": "c+",
-      "highestRank": "c+"
-    },
-    "waxymaxy": {
-      "sprintTs": "2026-05-29T01:43:32.974Z",
-      "blitzTs": "2026-06-04T16:48:38.182Z",
-      "zenithBestTs": "2026-06-04T17:12:15.384Z",
-      "letterRank": "a",
-      "highestRank": "a"
-    },
-    "wlnl": {
-      "sprintTs": "2026-05-11T18:55:34.343Z",
-      "blitzTs": "2026-05-11T18:35:18.535Z",
-      "zenithBestTs": "2026-05-17T17:16:50.414Z",
-      "letterRank": "b+",
-      "highestRank": "b+"
-    },
-    "dame410": {
-      "sprintTs": "2026-06-11T19:04:34.370Z",
-      "zenithBestTs": "2026-06-01T18:51:41.702Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "lirpa1119": {
-      "sprintTs": "2026-06-14T17:55:35.797Z",
-      "blitzTs": "2026-06-14T16:33:42.703Z",
-      "zenithBestTs": "2026-06-13T16:28:59.653Z",
-      "letterRank": "b+",
-      "highestRank": "b+"
-    },
-    "ace_spiker": {
-      "sprintTs": "2026-06-18T20:02:53.078Z",
-      "zenithBestTs": "2026-06-14T15:43:52.916Z",
-      "letterRank": "b",
-      "highestRank": "b"
-    },
-    "elsafrozen": {
-      "sprintTs": "2026-05-26T18:35:48.042Z",
-      "blitzTs": "2026-05-26T18:40:43.891Z",
-      "zenithBestTs": "2026-06-13T18:24:26.213Z",
-      "letterRank": "b-",
-      "highestRank": "b-"
-    },
-    "pear222": {
-      "sprintTs": "2024-12-22T20:04:03.743Z",
-      "blitzTs": "2024-10-13T19:28:13.723Z",
-      "zenithBestTs": "2025-11-06T14:28:38.070Z",
-      "zenithExBestTs": "2026-02-26T04:13:42.594Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "free-is-real": {
-      "zenithBestTs": "2026-06-01T13:06:37.382Z",
-      "letterRank": "d",
-      "highestRank": "d"
-    },
-    "egghead_man": {
-      "sprintTs": "2026-06-17T23:39:41.644Z",
-      "blitzTs": "2026-06-03T23:36:33.276Z",
-      "zenithBestTs": "2026-06-12T21:52:55.080Z",
-      "letterRank": "a+",
-      "highestRank": "a+"
-    },
-    "jessemeng142": {
-      "blitzTs": "2026-06-06T00:58:57.599Z",
-      "zenithBestTs": "2026-06-08T01:13:38.614Z",
-      "letterRank": "b+",
-      "highestRank": "b+"
-    },
-    "twimpegity": {
-      "sprintTs": "2026-05-20T20:42:03.109Z",
-      "blitzTs": "2026-04-17T16:20:02.091Z",
-      "zenithBestTs": "2026-06-04T19:08:01.641Z",
-      "letterRank": "s-",
-      "highestRank": "s-"
-    },
-    "sky_dr": {
-      "sprintTs": "2026-06-04T16:52:52.211Z",
-      "blitzTs": "2026-06-08T18:15:19.387Z",
-      "zenithBestTs": "2026-05-15T00:57:23.445Z",
-      "letterRank": "a-",
-      "highestRank": "a-"
-    },
-    "hail_earendil": {
-      "sprintTs": "2023-05-09T18:53:25.529Z",
-      "blitzTs": "2023-12-14T16:41:10.401Z",
-      "zenithBestTs": "2025-09-25T14:30:22.527Z",
-      "zenithExBestTs": "2025-09-18T22:13:34.923Z",
-      "letterRank": "u",
-      "highestRank": "u"
-    },
-    "retribution5618": {
-      "sprintTs": "2025-07-10T21:31:17.592Z",
-      "blitzTs": "2025-05-02T17:14:02.036Z",
-      "zenithBestTs": "2026-05-06T17:58:39.039Z",
-      "letterRank": "s",
-      "highestRank": "s"
-    },
-    "notdiamand": {
-      "sprintTs": "2026-06-03T01:41:40.429Z",
-      "blitzTs": "2023-07-22T18:23:57.701Z",
-      "zenithBestTs": "2025-02-25T04:22:48.808Z",
-      "zenithExBestTs": "2024-08-10T15:06:19.543Z",
-      "letterRank": "u",
-      "highestRank": "u"
-    },
-    "olsojdtd": {
-      "sprintTs": "2026-01-26T19:12:47.074Z",
-      "blitzTs": "2026-01-26T05:28:11.581Z",
-      "zenithBestTs": "2026-06-10T23:52:26.388Z",
-      "zenithExBestTs": "2026-06-02T04:33:13.483Z",
-      "letterRank": "ss",
-      "highestRank": "ss"
-    },
-    "1shadex1": {
-      "sprintTs": "2025-03-26T19:43:19.974Z",
-      "blitzTs": "2025-06-01T05:56:19.071Z",
-      "zenithBestTs": "2025-04-01T19:45:40.644Z",
-      "zenithExBestTs": "2025-05-10T21:39:07.529Z",
-      "letterRank": "s+",
-      "highestRank": "s+"
-    },
-    "wonkybonk21": {
-      "sprintTs": "2026-01-26T20:23:38.260Z",
-      "blitzTs": "2026-05-15T15:02:58.721Z",
-      "zenithBestTs": "2026-05-17T18:01:17.010Z",
-      "zenithExBestTs": "2025-04-29T22:27:31.050Z",
-      "letterRank": "ss",
-      "highestRank": "ss"
-    },
-    "viannna": {
-      "sprintTs": "2026-06-12T23:37:52.276Z",
-      "blitzTs": "2026-06-20T16:41:39.561Z",
-      "zenithBestTs": "2026-05-17T20:48:58.130Z",
-      "letterRank": "b",
-      "highestRank": "b"
-    },
-    "stellastella": {
-      "zenithBestTs": "2026-03-04T03:58:13.748Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "bananasplit12": {
-      "blitzTs": "2026-05-07T19:32:19.757Z",
-      "zenithBestTs": "2026-05-24T23:47:29.308Z",
-      "letterRank": "b",
-      "highestRank": "b"
-    },
-    "amyma": {
-      "sprintTs": "2026-06-01T19:11:04.952Z",
-      "blitzTs": "2026-06-04T02:25:06.987Z",
-      "zenithBestTs": "2026-06-05T19:39:26.797Z",
-      "letterRank": "d+",
-      "highestRank": "d+"
-    },
-    "poopoo67": {
-      "zenithBestTs": "2026-06-11T15:01:17.813Z",
-      "letterRank": "c-",
-      "highestRank": "c-"
-    },
-    "de_berd": {
-      "sprintTs": "2026-06-20T03:08:36.819Z",
-      "blitzTs": "2026-06-18T23:46:55.466Z",
-      "zenithBestTs": "2026-06-11T22:57:37.130Z",
-      "letterRank": "a",
-      "highestRank": "a"
-    },
-    "vithika003": {
-      "sprintTs": "2026-06-16T00:32:17.813Z",
-      "blitzTs": "2026-05-20T22:40:18.121Z",
-      "zenithBestTs": "2026-06-13T12:47:30.763Z",
-      "letterRank": "b+",
-      "highestRank": "b+"
-    },
-    "claytonm": {
-      "sprintTs": "2026-05-29T23:18:25.862Z",
-      "zenithBestTs": "2026-05-26T00:24:39.721Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "likevrui": {
-      "sprintTs": "2025-04-06T01:57:09.425Z",
-      "blitzTs": "2024-12-12T01:30:19.337Z",
-      "zenithBestTs": "2025-05-29T01:36:45.200Z",
-      "zenithExBestTs": "2025-03-02T19:14:41.962Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "not_sucram": {
-      "blitzTs": "2026-05-30T04:36:01.621Z",
-      "zenithBestTs": "2026-05-22T13:03:03.261Z",
-      "letterRank": "c",
-      "highestRank": "c"
-    },
-    "banjoman": {
-      "zenithBestTs": "2026-05-26T17:59:37.320Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "rainissa": {
-      "sprintTs": "2026-05-18T03:44:41.600Z",
-      "blitzTs": "2026-06-11T01:17:32.882Z",
-      "zenithBestTs": "2026-06-08T23:40:04.241Z",
-      "letterRank": "d+",
-      "highestRank": "d+"
-    },
-    "user-83050480858": {
-      "sprintTs": "2026-06-07T21:16:52.026Z",
-      "zenithBestTs": "2026-06-02T02:51:15.167Z",
-      "letterRank": "b+",
-      "highestRank": "b+"
-    },
-    "aqfish2111": {
-      "sprintTs": "2026-06-16T21:00:37.057Z",
-      "blitzTs": "2026-06-11T00:10:48.993Z",
-      "zenithBestTs": "2026-06-11T00:41:35.275Z",
-      "letterRank": "c+",
-      "highestRank": "c+"
-    },
-    "gowitheclo": {
-      "sprintTs": "2026-05-11T23:54:46.825Z",
-      "blitzTs": "2026-06-07T01:39:52.669Z",
-      "zenithBestTs": "2026-06-11T23:50:12.152Z",
-      "letterRank": "b-",
-      "highestRank": "b-"
-    },
-    "captstarkjs": {
-      "zenithBestTs": "2026-06-02T14:54:07.640Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "reiidiohead": {
-      "sprintTs": "2026-05-20T19:31:27.918Z",
-      "blitzTs": "2026-06-05T18:55:50.585Z",
-      "zenithBestTs": "2026-05-25T16:23:03.877Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "pnedcat": {
-      "sprintTs": "2026-06-05T13:50:53.753Z",
-      "zenithBestTs": "2026-06-05T13:46:27.151Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "tiggerttiger": {
-      "sprintTs": "2026-05-27T23:31:49.240Z",
-      "blitzTs": "2026-05-20T23:27:56.211Z",
-      "zenithBestTs": "2026-05-04T23:26:35.298Z",
-      "letterRank": "b",
-      "highestRank": "b"
-    },
-    "felixfil": {
-      "zenithBestTs": "2026-06-04T16:18:05.210Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "spicybigmac": {
-      "sprintTs": "2025-05-01T19:42:03.689Z",
-      "blitzTs": "2024-12-23T20:03:40.662Z",
-      "zenithBestTs": "2025-05-01T19:07:39.714Z",
-      "letterRank": "s",
-      "highestRank": "s"
-    },
-    "sucram314": {
-      "sprintTs": "2022-06-15T18:39:42.742Z",
-      "blitzTs": "2022-06-12T18:12:23.189Z",
-      "zenithBestTs": "2025-05-13T23:06:00.786Z",
-      "letterRank": "ss",
-      "highestRank": "ss"
-    },
-    "snowyowlcake": {
-      "sprintTs": "2026-06-18T22:41:31.353Z",
-      "blitzTs": "2026-05-28T15:09:19.400Z",
-      "zenithBestTs": "2026-06-14T18:29:38.748Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "comet35": {
-      "blitzTs": "2026-05-07T18:58:29.840Z",
-      "zenithBestTs": "2026-06-09T17:58:33.812Z",
-      "letterRank": "z",
-      "highestRank": "z"
-    },
-    "apexphoenix": {
-      "sprintTs": "2026-05-05T16:55:08.517Z",
-      "blitzTs": "2026-06-02T19:38:30.652Z",
-      "zenithBestTs": "2026-05-14T01:49:56.644Z",
-      "zenithExBestTs": "2026-06-06T16:01:18.095Z",
-      "letterRank": "u",
-      "highestRank": "u"
-    }
-  },
-  "recentAchievements": [
-    {
-      "username": "ace_spiker",
-      "realName": "Ryan Sharma",
-      "type": "rank",
-      "value": "b",
-      "achievedAt": 1781973613992
     },
     {
-      "username": "viannna",
-      "realName": "Vianna Su",
-      "type": "blitz",
-      "value": 87934,
-      "achievedAt": 1781973732023
-    },
-    {
-      "username": "viannna",
-      "realName": "Vianna Su",
-      "type": "blitz",
-      "value": 87766,
-      "achievedAt": 1781973783990
+      "weekStart": "2026-06-21",
+      "ranks": {
+        "notdiamand": 1,
+        "pear222": 2,
+        "apexphoenix": 3,
+        "hail_earendil": 4,
+        "likevrui": 5,
+        "wonkybonk21": 6,
+        "sucram314": 7,
+        "olsojdtd": 8,
+        "1shadex1": 9,
+        "retribution5618": 10,
+        "spicybigmac": 11,
+        "twimpegity": 12,
+        "revl": 13,
+        "egghead_man": 14,
+        "waxymaxy": 15,
+        "de_berd": 16,
+        "jessemeng142": 17,
+        "sky_dr": 18,
+        "peytonrexx": 19,
+        "user-83050480858": 20,
+        "vithika003": 21,
+        "tetrismountain": 22,
+        "wlnl": 23,
+        "lirpa1119": 24,
+        "tiggerttiger": 25,
+        "ace_spiker": 26,
+        "viannna": 27,
+        "bananasplit12": 28,
+        "tetrusmountain": 29,
+        "elsafrozen": 30,
+        "gowitheclo": 31,
+        "not_bob": 32,
+        "pumpkinpoet": 33,
+        "aqfish2111": 34,
+        "not_sucram": 35,
+        "tetraplatypus": 36,
+        "dame410": 37,
+        "poopoo67": 38,
+        "amyma": 39,
+        "rainissa": 40,
+        "caloriekirk": 41,
+        "free-is-real": 42,
+        "peytonrexx1": 43,
+        "stellastella": 44,
+        "claytonm": 45,
+        "banjoman": 46,
+        "captstarkjs": 47,
+        "reiidiohead": 48,
+        "pnedcat": 49,
+        "felixfil": 50,
+        "snowyowlcake": 51,
+        "comet35": 52
+      },
+      "names": {
+        "notdiamand": "Daniel Zhao *",
+        "pear222": "Perry Dai *",
+        "apexphoenix": "Isaac Tam",
+        "hail_earendil": "Daniel Cui *",
+        "likevrui": "Kevin Li",
+        "wonkybonk21": "Daniel Ganjali *",
+        "sucram314": "Marcus Liu *",
+        "olsojdtd": "Kevin Wen",
+        "1shadex1": "Alex Zhang *",
+        "retribution5618": "Jerry Li",
+        "spicybigmac": "Henry Tian",
+        "twimpegity": "Aaron Yang",
+        "revl": "William Wu",
+        "egghead_man": "Nathan Huang",
+        "waxymaxy": "Max Wen",
+        "de_berd": "Jonathan Omoto",
+        "jessemeng142": "Jesse Meng",
+        "sky_dr": "William Trippen",
+        "peytonrexx": "Nathan Chau",
+        "user-83050480858": "Shao Luan",
+        "vithika003": "Vithika Pore",
+        "tetrismountain": "Evan Mannik",
+        "wlnl": "Emily Mu",
+        "lirpa1119": "April Ye",
+        "tiggerttiger": "Dora Jiang",
+        "ace_spiker": "Ryan Sharma",
+        "viannna": "Vianna Su",
+        "bananasplit12": "Hannah Yeung",
+        "tetrusmountain": "Josh Burke",
+        "elsafrozen": "Elsa Liu",
+        "gowitheclo": "Chloe Lin",
+        "not_bob": "Perry Wu",
+        "pumpkinpoet": "James Coleman",
+        "aqfish2111": "Ayden Qin",
+        "not_sucram": "Marcus Leung",
+        "tetraplatypus": "Shawn Joneja",
+        "dame410": "Damian Tang",
+        "poopoo67": "Will Wo",
+        "amyma": "Amy Zhuo",
+        "rainissa": "Isabel Tian",
+        "caloriekirk": "Lucas Cescon",
+        "free-is-real": "Carter Lee",
+        "peytonrexx1": "Peyton Duan-Tan",
+        "stellastella": "Stella Li",
+        "claytonm": "Clayton Mo",
+        "banjoman": "Benjamin Fernandes",
+        "captstarkjs": "Jason Chen",
+        "reiidiohead": "Paulina Paskaleva",
+        "pnedcat": "Marie Guan",
+        "felixfil": "Felix Wong",
+        "snowyowlcake": "Sarah Ding",
+        "comet35": "Adam Weiner"
+      },
+      "letterRanks": {
+        "notdiamand": "u",
+        "pear222": "z",
+        "apexphoenix": "u",
+        "hail_earendil": "u",
+        "likevrui": "z",
+        "wonkybonk21": "ss",
+        "sucram314": "ss",
+        "olsojdtd": "ss",
+        "1shadex1": "s+",
+        "retribution5618": "s",
+        "spicybigmac": "s",
+        "twimpegity": "s-",
+        "revl": "a+",
+        "egghead_man": "a+",
+        "waxymaxy": "a",
+        "de_berd": "a",
+        "jessemeng142": "a-",
+        "sky_dr": "a-",
+        "peytonrexx": "b+",
+        "user-83050480858": "b+",
+        "vithika003": "b+",
+        "tetrismountain": "b+",
+        "wlnl": "b+",
+        "lirpa1119": "b+",
+        "tiggerttiger": "b",
+        "ace_spiker": "b",
+        "viannna": "b",
+        "bananasplit12": "b",
+        "tetrusmountain": "b-",
+        "elsafrozen": "b-",
+        "gowitheclo": "b-",
+        "not_bob": "c+",
+        "pumpkinpoet": "c+",
+        "aqfish2111": "c+",
+        "not_sucram": "c",
+        "tetraplatypus": "c",
+        "dame410": "z",
+        "poopoo67": "c-",
+        "amyma": "d+",
+        "rainissa": "d+",
+        "caloriekirk": "z",
+        "free-is-real": "d",
+        "peytonrexx1": "z",
+        "stellastella": "z",
+        "claytonm": "z",
+        "banjoman": "z",
+        "captstarkjs": "z",
+        "reiidiohead": "z",
+        "pnedcat": "z",
+        "felixfil": "z",
+        "snowyowlcake": "z",
+        "comet35": "z"
+      },
+      "bestSprints": {
+        "notdiamand": 22923.333333333332,
+        "pear222": 26091.666666666668,
+        "apexphoenix": 39543.333333333336,
+        "hail_earendil": 32071.666666666668,
+        "likevrui": 33178.333333333336,
+        "wonkybonk21": 28318.333333333332,
+        "sucram314": 42770,
+        "olsojdtd": 44638.333333333336,
+        "1shadex1": 53033.333333333336,
+        "retribution5618": 49140,
+        "spicybigmac": 34726.666666666664,
+        "twimpegity": 56966.666666666664,
+        "revl": 61460,
+        "egghead_man": 69118.33333333334,
+        "waxymaxy": 71105,
+        "de_berd": 87613.33333333333,
+        "sky_dr": 95811.66666666667,
+        "peytonrexx": 117910,
+        "user-83050480858": 101833.33333333333,
+        "vithika003": 81265,
+        "tetrismountain": 119876.66666666667,
+        "wlnl": 78166.66666666667,
+        "lirpa1119": 92570,
+        "tiggerttiger": 69075,
+        "ace_spiker": 108000,
+        "viannna": 89366.66666666667,
+        "elsafrozen": 111120,
+        "gowitheclo": 131018.33333333333,
+        "not_bob": 151466.66666666666,
+        "pumpkinpoet": 94996.66666666667,
+        "aqfish2111": 104426.66666666667,
+        "tetraplatypus": 204630,
+        "dame410": 103175,
+        "amyma": 115483.33333333333,
+        "rainissa": 231761.66666666666,
+        "peytonrexx1": 128576.66666666667,
+        "claytonm": 110293.33333333333,
+        "reiidiohead": 128180,
+        "pnedcat": 231788.33333333334,
+        "snowyowlcake": 136241.66666666666
+      },
+      "bestBlitz": {
+        "notdiamand": 1005237,
+        "pear222": 882756,
+        "apexphoenix": 216106,
+        "hail_earendil": 495907,
+        "likevrui": 1,
+        "wonkybonk21": 305081,
+        "sucram314": 391205,
+        "olsojdtd": 505901,
+        "1shadex1": 181885,
+        "retribution5618": 440689,
+        "spicybigmac": 83415,
+        "twimpegity": 114009,
+        "revl": 125059,
+        "egghead_man": 72346,
+        "waxymaxy": 105810,
+        "de_berd": 76522,
+        "jessemeng142": 34659,
+        "sky_dr": 66276,
+        "peytonrexx": 39908,
+        "vithika003": 45249,
+        "tetrismountain": 36470,
+        "wlnl": 86596,
+        "lirpa1119": 70838,
+        "tiggerttiger": 48835,
+        "viannna": 87934,
+        "bananasplit12": 19281,
+        "elsafrozen": 24536,
+        "gowitheclo": 41386,
+        "not_bob": 12913,
+        "pumpkinpoet": 21786,
+        "aqfish2111": 28614,
+        "not_sucram": 17580,
+        "tetraplatypus": 7232,
+        "amyma": 40942,
+        "rainissa": 34971,
+        "peytonrexx1": 34200,
+        "reiidiohead": 20074,
+        "snowyowlcake": 21003,
+        "comet35": 15463
+      },
+      "bestZenith": {
+        "notdiamand": 2042.0669453502046,
+        "pear222": 2548.9806121016313,
+        "apexphoenix": 1181.8572239509897,
+        "hail_earendil": 1819.3571937001668,
+        "wonkybonk21": 1944.8780227247044,
+        "sucram314": 1275.0839251111736,
+        "olsojdtd": 1332.2418992476614,
+        "1shadex1": 1033.2850693029263,
+        "spicybigmac": 951.9036968332101,
+        "revl": 888.0264893198236,
+        "egghead_man": 887.1510932558828,
+        "de_berd": 872.3364523002713,
+        "jessemeng142": 230.84897488977083,
+        "sky_dr": 544.7485572639195,
+        "peytonrexx": 447.5556267146326,
+        "user-83050480858": 350.8909811326893,
+        "vithika003": 717.1272140193124,
+        "lirpa1119": 704.8263248958011,
+        "ace_spiker": 636.6755784344031,
+        "viannna": 468.4319017479079,
+        "bananasplit12": 199.4790958661928,
+        "tetrusmountain": 548.0102200188373,
+        "elsafrozen": 540.7323590485421,
+        "gowitheclo": 585.2313806230887,
+        "not_bob": 567.3728462905318,
+        "aqfish2111": 393.34126602712234,
+        "not_sucram": 443.87418926972094,
+        "tetraplatypus": 81.00877341418955,
+        "dame410": 525.0201750934942,
+        "poopoo67": 230.29719136270623,
+        "rainissa": 124.12627509644295,
+        "peytonrexx1": 311.22536556409113,
+        "claytonm": 206.0060269571135,
+        "snowyowlcake": 267.6298517357442,
+        "comet35": 829.6826892971942
+      }
     }
   ]
 }
