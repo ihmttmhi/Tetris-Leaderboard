@@ -49,9 +49,7 @@ table tr:nth-child(odd) {
   background-color: var(--table-row-odd);
 }
 
-table tr:hover {
-  background-color: var(--row-hover);
-}
+/* no row hover effect */
 
 a {
   color: var(--link-color);

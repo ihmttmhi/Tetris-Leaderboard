@@ -258,18 +258,17 @@ function maybeRollover(currentRanks, currentNames, currentLetterRanks, currentPB
   persist(); // fire and forget
 }
 
-// Ranks at the start of the current week (baseline for live arrows).
+// Ranks from the PREVIOUS week (baseline for Change column arrows).
 function getBaselineRanks() {
-  const last = snapshots[snapshots.length - 1];
-  return last ? last.ranks : {};
+  if (snapshots.length < 2) return {};
+  return snapshots[snapshots.length - 2].ranks;
 }
 
-// The date (YYYY-MM-DD) the current live comparison is measured against, i.e.
-// the start of the current week. Null until a real baseline exists.
+// The date (YYYY-MM-DD) the Change column is measured against, i.e.
+// the start of the PREVIOUS week. Null until a real baseline exists.
 function getBaselineWeek() {
   if (!hasBaseline()) return null;
-  const last = snapshots[snapshots.length - 1];
-  return last ? last.weekStart : null;
+  return snapshots[snapshots.length - 2].weekStart;
 }
 
 // Whether we have a genuine start-of-week baseline to compare against.
@@ -445,7 +444,6 @@ module.exports = {
   maybeRollover,
   fetchAllNews,
   getMovement,
-  getRecap,
   getHighlights,
   getBaselineWeek,
   weekStartKey,

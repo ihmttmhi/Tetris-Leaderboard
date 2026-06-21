@@ -29,44 +29,6 @@ function Movement({ move }) {
   );
 }
 
-function Recap({ recap }) {
-  if (!recap || !recap.movers || recap.movers.length === 0) return null;
-  const moved = recap.movers.filter((m) => m.dir !== "same");
-  if (moved.length === 0) return null;
-
-  return (
-    <div
-      style={{
-        margin: "10px 0 20px",
-        padding: "14px 16px",
-        border: "1px solid var(--table-border)",
-        borderRadius: "10px",
-        background: "var(--table-header-bg)"
-      }}
-    >
-      <div style={{ fontWeight: 700, marginBottom: 8 }}>
-        📊 Last week's recap{" "}
-        <span style={{ fontWeight: 400, color: "var(--footer-color)" }}>
-          (week of {recap.weekFrom})
-        </span>
-      </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 18px" }}>
-        {moved.map((m) => {
-          const up = m.dir === "up";
-          return (
-            <span key={m.username}>
-              <strong>{m.realName}</strong>{" "}
-              <span style={{ color: up ? "#2ecc71" : "#e74c3c", fontWeight: 600 }}>
-                {up ? "\u25B2" : "\u25BC"} {m.delta}
-              </span>{" "}
-              position{m.delta === 1 ? "" : "s"} {up ? "up" : "down"}
-            </span>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // Format a YYYY-MM-DD week key into a readable date (e.g. "Jun 8, 2026").
 const fmtDate = (key) => {
@@ -187,7 +149,7 @@ const isUnranked = (letterRank) => {
   const r = (letterRank ?? "").toString().toLowerCase().trim();
   return r === "" || r === "z" || r === "?" || r === "-";
 };
-const fmtTR = (m) => (isUnranked(m.letterRank) ? "Unranked" : m.tr);
+const fmtTR = (m) => (isUnranked(m.letterRank) ? "Unranked" : Number(m.tr).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 const fmtStanding = (s) => (s == null || s <= 0 ? "\u2013" : s.toLocaleString());
 const fmtNum = (v, d = 2) => (v == null ? "\u2013" : Number(v).toFixed(d));
 const fmtInt = (v) => (v == null ? "\u2013" : v.toLocaleString());
@@ -239,7 +201,7 @@ const SORT_MODES = [
   { key: "zenithBest", label: "All-Time QP" },
 ];
 const MODE_PROFILE_PATH = {
-  tr: "",
+  tr: "/league",
   sprint: "/40l",
   blitz: "/blitz",
   zenith: "/zenith",
@@ -291,7 +253,7 @@ const MODE_COLUMNS = {
       <td key="zclimb">{fmtClimb(m.zenithClimbAvg, m.zenithClimbPeak)}</td>,
       <td key="zapm">{fmtNum(m.zenithAPM)}</td>,
       <td key="zpps">{fmtNum(m.zenithPPS)}</td>,
-      <td key="zenith">{fmtZenith(m.zenith)}</td>,
+      <td key="zenith"><ReplayCell replayId={m.zenithReplayId}>{fmtZenith(m.zenith)}</ReplayCell></td>,
     ],
   },
   zenithEx: {
@@ -302,7 +264,7 @@ const MODE_COLUMNS = {
       <td key="zeclimb">{fmtClimb(m.zenithExClimbAvg, m.zenithExClimbPeak)}</td>,
       <td key="zeapm">{fmtNum(m.zenithExAPM)}</td>,
       <td key="zepps">{fmtNum(m.zenithExPPS)}</td>,
-      <td key="zenithEx">{fmtZenith(m.zenithEx)}</td>,
+      <td key="zenithEx"><ReplayCell replayId={m.zenithExReplayId}>{fmtZenith(m.zenithEx)}</ReplayCell></td>,
     ],
   },
   zenithBest: {
@@ -364,7 +326,7 @@ function sortMembers(list, mode) {
   return sorted;
 }
 
-function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, since, fetchError, sortMode, setSortMode }) {
+function Leaderboard({ members, searchTerm, setSearchTerm, highlights, since, fetchError, sortMode, setSortMode }) {
 
 
   const filtered = members.filter((m) =>
@@ -392,7 +354,6 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
       )}
 
       <Highlights highlights={highlights} since={since} />
-      <Recap recap={recap} />
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 16 }}>
         <span style={{ fontWeight: 600, fontSize: "0.9em", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--footer-color)" }}>Rank by:</span>
@@ -438,7 +399,9 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
           <thead>
             <tr style={{ background: "var(--table-header-bg)" }}>
               <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>Rank</th>
-              <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>Change</th>
+              <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>
+                Change{since && <div style={{ fontSize: "0.7em", fontWeight: 400, textTransform: "none", letterSpacing: 0, color: "var(--footer-color)", marginTop: 2 }}>since {fmtDate(since)}</div>}
+              </th>
               <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>Player</th>
               <th style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>Username</th>
               {MODE_COLUMNS[sortMode].headers.map((h) => <th key={h} style={{ padding: "10px 8px", textAlign: "center", fontSize: "0.85em", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "2px solid var(--table-border)" }}>{h}</th>)}
@@ -482,7 +445,6 @@ function Leaderboard({ members, searchTerm, setSearchTerm, recap, highlights, si
 
 export default function App() {
   const [members, setMembers] = useState([]);
-  const [recap, setRecap] = useState(null);
   const [highlights, setHighlights] = useState(null);
   const [since, setSince] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
@@ -520,7 +482,6 @@ export default function App() {
 
     const applyData = (data) => {
       setMembers(data.members || []);
-      setRecap(data.recap || null);
       setHighlights(data.highlights || null);
       setSince(data.since || null);
       setFetchError(null);
@@ -584,28 +545,37 @@ export default function App() {
           </Link>
         </div>
 
-        {/* DARK MODE (checkbox LEFT of text) */}
-        <label
+        {/* DARK MODE TOGGLE (four.lol style SVG icon) */}
+        <button
+          onClick={() => setDarkMode((prev) => !prev)}
+          title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
           style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: 6,
             display: "flex",
             alignItems: "center",
-            gap: "8px",
-            padding: "6px 10px",
-            border: "1px solid var(--table-border)",
-            borderRadius: "8px",
-            background: "var(--table-header-bg)"
           }}
         >
-          <input
-            type="checkbox"
-            checked={darkMode}
-            onChange={() => setDarkMode((prev) => !prev)}
-            style={{ cursor: "pointer" }}
-          />
-          <span style={{ fontSize: "14px" }}>
-            {darkMode ? "Dark mode" : "Light mode"}
-          </span>
-        </label>
+          {darkMode ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="23" />
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+              <line x1="1" y1="12" x2="3" y2="12" />
+              <line x1="21" y1="12" x2="23" y2="12" />
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          )}
+        </button>
       </div>
 
       {/* ROUTES */}
@@ -617,7 +587,6 @@ export default function App() {
               members={sortMembers(members, sortMode)}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
-              recap={recap}
               highlights={highlights}
               since={since}
               fetchError={fetchError}

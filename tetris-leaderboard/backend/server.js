@@ -246,7 +246,7 @@ function buildLeaderboard() {
     totalMembers: members.length,
     cachedMembers: list.length,
     members: list,
-    recap: history.getRecap(),
+    recap: null,
     highlights: history.getHighlights(list),
     since: history.getBaselineWeek(),
   };
