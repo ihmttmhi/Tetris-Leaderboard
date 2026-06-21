@@ -62,12 +62,14 @@ function torontoParts(date) {
   };
 }
 
-// Returns the date (YYYY-MM-DD) of the most recent Sunday 00:00 in TZ.
+// Returns the date (YYYY-MM-DD) of the most recent Monday 00:00 in TZ.
 function weekStartKey(date = new Date()) {
   const p = torontoParts(date);
   const dayIndex = WEEKDAYS.indexOf(p.weekday);
+  // Shift so Monday=0: (dayIndex + 6) % 7 gives days since last Monday
+  const daysSinceMonday = (dayIndex + 6) % 7;
   const base = new Date(Date.UTC(p.year, p.month - 1, p.day));
-  base.setUTCDate(base.getUTCDate() - dayIndex);
+  base.setUTCDate(base.getUTCDate() - daysSinceMonday);
   return base.toISOString().slice(0, 10);
 }
 
@@ -234,7 +236,7 @@ async function init() {
   loaded = true;
 }
 
-// Take a new weekly snapshot if we've crossed into a new week (TZ Sunday 00:00).
+// Take a new weekly snapshot if we've crossed into a new week (TZ Monday 00:00).
 function maybeRollover(currentRanks, currentNames, currentLetterRanks, currentPBs) {
   if (!loaded) return;
   const week = weekStartKey();
@@ -273,7 +275,7 @@ function getBaselineWeek() {
 
 // Whether we have a genuine start-of-week baseline to compare against.
 // The very first snapshot is taken mid-week (when the feature first runs), so
-// it isn't a real week boundary; movement is only meaningful once a Sunday
+// it isn't a real week boundary; movement is only meaningful once a Monday
 // rollover has produced a second snapshot. Until then everyone shows "new".
 function hasBaseline() {
   return snapshots.length >= 2;
