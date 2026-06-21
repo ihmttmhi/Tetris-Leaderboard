@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import Bracket from "./Bracket";
+import Resources from "./Resources";
 
 /* ---------------- LEADERBOARD ---------------- */
 
@@ -336,7 +337,7 @@ function Leaderboard({ members, searchTerm, setSearchTerm, highlights, since, fe
 
   return (
     <div>
-      <h1 style={{ fontSize: "1.8em", letterSpacing: "-0.02em", marginBottom: 16 }}>UTS Tetris Elite Leaderboard</h1>
+      <h1 style={{ fontSize: "2.2em", letterSpacing: "-0.02em", marginBottom: 16 }}>UTS Tetris Elite Leaderboard</h1>
 
       {fetchError && (
         <div
@@ -543,6 +544,12 @@ export default function App() {
               Tournament Bracket
             </button>
           </Link>
+
+          <Link to="/resources" style={{ textDecoration: "none" }}>
+            <button style={tabStyle(location.pathname === "/resources")}>
+              Resources
+            </button>
+          </Link>
         </div>
 
         {/* DARK MODE TOGGLE (four.lol style SVG icon) */}
@@ -601,6 +608,7 @@ export default function App() {
         />
 
         <Route path="/bracket" element={<Bracket />} />
+        <Route path="/resources" element={<Resources />} />
       </Routes>
     </div>
   );
