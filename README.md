@@ -8,7 +8,7 @@ A real-time TETR.IO leaderboard for the UTS Tetris Elite club. The app polls eac
 
 - **Multi-mode leaderboard** — Sort and view by Tetra League (TR), 40 Lines, Blitz, Quick Play, Expert QP, and All-Time QP
 - **Real-time updates** — Backend polls TETR.IO every 500ms per player; frontend receives updates via Server-Sent Events (SSE)
-- **Weekly Change arrows** — Green up / red down / gray bar icons showing rank movement since the previous Monday (EST)
+- **Weekly Change arrows** — Green up / red down / gray bar icons showing rank movement since the most recent Monday 12am EST. The "since" date updates automatically every Monday.
 - **Latest News feed** — Pulls from each member's TETR.IO news API: rank-ups, 40L PBs, Blitz PBs, QP PBs (last 7 days)
 - **Mode-specific columns** — Each mode displays the exact columns shown on TETR.IO's official leaderboard pages
 - **Replay links** — Click record values (40L, Blitz, QP, Expert QP) to watch the replay on TETR.IO
@@ -53,7 +53,7 @@ tetris-leaderboard/
 - **`weekStartKey(date)`** — Calculates the most recent Monday in `America/Toronto` timezone
 - **`maybeRollover(ranks, names, letterRanks, pbs)`** — Called each poll cycle; if the current week key differs from the latest snapshot, creates a new snapshot
 - **`getMovement(username, currentRank)`** — Compares current rank against the previous week's snapshot to produce `{ dir: "up"|"down"|"same"|"new", delta }`
-- **`getBaselineWeek()`** — Returns the date string for the Change column's "since ..." label
+- **`getBaselineWeek()`** — Returns the current week's Monday date for the Change column's "since ..." label (via `weekStartKey()`)
 - **`fetchAllNews(members)`** — Every 5 minutes, fetches each member's TETR.IO news feed (`/api/news/user_{id}`) for rank-ups and PBs from the last 7 days
 - **GitHub persistence** — Stores `history.json` on a dedicated `leaderboard-data` branch via the GitHub Contents API. Survives Render redeploys. Falls back to a local file if `GITHUB_TOKEN` is not set.
 

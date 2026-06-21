@@ -266,11 +266,11 @@ function getBaselineRanks() {
   return snapshots[snapshots.length - 2].ranks;
 }
 
-// The date (YYYY-MM-DD) the Change column is measured against, i.e.
-// the start of the PREVIOUS week. Null until a real baseline exists.
+// The date (YYYY-MM-DD) the Change column is measured from, i.e.
+// the start of the CURRENT week (most recent Monday). Null until a real baseline exists.
 function getBaselineWeek() {
   if (!hasBaseline()) return null;
-  return snapshots[snapshots.length - 2].weekStart;
+  return weekStartKey();
 }
 
 // Whether we have a genuine start-of-week baseline to compare against.
