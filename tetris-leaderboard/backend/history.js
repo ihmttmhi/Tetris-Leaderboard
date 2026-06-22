@@ -289,11 +289,10 @@ function getBaselineRanks() {
   return snap ? snap.ranks : {};
 }
 
-// The date (YYYY-MM-DD) the Change column is measured from.
-// Returns the actual snapshot date used, ensuring consistency with getBaselineRanks().
+// The date (YYYY-MM-DD) the Change column is measured from (7 Toronto days ago).
 function getBaselineWeek() {
-  const snap = getBaselineSnapshot();
-  return snap ? snap.weekStart : null;
+  if (!hasBaseline()) return null;
+  return daysAgoKey(7);
 }
 
 // Whether we have a snapshot old enough to compare against.
