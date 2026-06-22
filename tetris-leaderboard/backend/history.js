@@ -24,7 +24,7 @@ const GITHUB_REPO = process.env.GITHUB_REPO || "ihmttmhi/Tetris-Leaderboard";
 const DATA_BRANCH = process.env.HISTORY_BRANCH || "leaderboard-data";
 const DATA_PATH = process.env.HISTORY_PATH || "history.json";
 const LOCAL_FILE = path.join(__dirname, "history.local.json");
-const MAX_SNAPSHOTS = 10; // keep >7 days so we always have a week-ago baseline
+const MAX_SNAPSHOTS = 14; // keep >7 days of buffer for outage resilience
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -266,28 +266,31 @@ function maybeRollover(currentRanks, currentNames, currentLetterRanks, currentPB
   persist(); // fire and forget
 }
 
-// Ranks from exactly 7 days ago (baseline for Change column arrows).
-function getBaselineRanks() {
+// Find the snapshot closest to (but not after) 7 days ago.
+function getBaselineSnapshot() {
   const target = dayKey(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
-  // Find the snapshot whose date matches 7 days ago
   for (let i = snapshots.length - 1; i >= 0; i--) {
-    if (snapshots[i].weekStart <= target) return snapshots[i].ranks;
+    if (snapshots[i].weekStart <= target) return snapshots[i];
   }
-  return {};
+  return null;
 }
 
-// The date (YYYY-MM-DD) the Change column is measured from (7 days ago).
-// Null until we have a snapshot old enough to compare against.
+// Ranks from the baseline snapshot (for Change column arrows).
+function getBaselineRanks() {
+  const snap = getBaselineSnapshot();
+  return snap ? snap.ranks : {};
+}
+
+// The date (YYYY-MM-DD) the Change column is measured from.
+// Returns the actual snapshot date used, ensuring consistency with getBaselineRanks().
 function getBaselineWeek() {
-  if (!hasBaseline()) return null;
-  return dayKey(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+  const snap = getBaselineSnapshot();
+  return snap ? snap.weekStart : null;
 }
 
-// Whether we have a snapshot at least 7 days old to compare against.
+// Whether we have a snapshot old enough to compare against.
 function hasBaseline() {
-  if (snapshots.length < 2) return false;
-  const target = dayKey(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
-  return snapshots[0].weekStart <= target;
+  return getBaselineSnapshot() != null;
 }
 
 // Movement of a player's current rank vs the start-of-week baseline.
