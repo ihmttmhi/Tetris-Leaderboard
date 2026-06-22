@@ -24,7 +24,7 @@ const GITHUB_REPO = process.env.GITHUB_REPO || "ihmttmhi/Tetris-Leaderboard";
 const DATA_BRANCH = process.env.HISTORY_BRANCH || "leaderboard-data";
 const DATA_PATH = process.env.HISTORY_PATH || "history.json";
 const LOCAL_FILE = path.join(__dirname, "history.local.json");
-const MAX_SNAPSHOTS = 8;
+const MAX_SNAPSHOTS = 10; // keep >7 days so we always have a week-ago baseline
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -71,6 +71,12 @@ function weekStartKey(date = new Date()) {
   const base = new Date(Date.UTC(p.year, p.month - 1, p.day));
   base.setUTCDate(base.getUTCDate() - daysSinceMonday);
   return base.toISOString().slice(0, 10);
+}
+
+// Returns today's date (YYYY-MM-DD) in TZ — used as the daily snapshot key.
+function dayKey(date = new Date()) {
+  const p = torontoParts(date);
+  return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
 }
 
 // ----- GitHub persistence -----
@@ -143,7 +149,7 @@ async function saveToGitHub() {
   const persistData = { snapshots };
   const content = Buffer.from(JSON.stringify(persistData, null, 2)).toString("base64");
   const body = {
-    message: `Update leaderboard history (${weekStartKey()})`,
+    message: `Update leaderboard history (${dayKey()})`,
     content,
     branch: DATA_BRANCH,
   };
@@ -236,14 +242,14 @@ async function init() {
   loaded = true;
 }
 
-// Take a new weekly snapshot if we've crossed into a new week (TZ Monday 00:00).
+// Take a new daily snapshot if we've crossed into a new day (12:00 AM in TZ).
 function maybeRollover(currentRanks, currentNames, currentLetterRanks, currentPBs) {
   if (!loaded) return;
-  const week = weekStartKey();
+  const today = dayKey();
   const last = snapshots[snapshots.length - 1];
-  if (last && last.weekStart >= week) return;
+  if (last && last.weekStart >= today) return;
   const snap = {
-    weekStart: week,
+    weekStart: today,
     ranks: { ...currentRanks },
     names: { ...currentNames },
     letterRanks: { ...currentLetterRanks },
@@ -260,25 +266,28 @@ function maybeRollover(currentRanks, currentNames, currentLetterRanks, currentPB
   persist(); // fire and forget
 }
 
-// Ranks from the PREVIOUS week (baseline for Change column arrows).
+// Ranks from exactly 7 days ago (baseline for Change column arrows).
 function getBaselineRanks() {
-  if (snapshots.length < 2) return {};
-  return snapshots[snapshots.length - 2].ranks;
+  const target = dayKey(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+  // Find the snapshot whose date matches 7 days ago
+  for (let i = snapshots.length - 1; i >= 0; i--) {
+    if (snapshots[i].weekStart <= target) return snapshots[i].ranks;
+  }
+  return {};
 }
 
-// The date (YYYY-MM-DD) the Change column is measured from, i.e.
-// the start of the CURRENT week (most recent Monday). Null until a real baseline exists.
+// The date (YYYY-MM-DD) the Change column is measured from (7 days ago).
+// Null until we have a snapshot old enough to compare against.
 function getBaselineWeek() {
   if (!hasBaseline()) return null;
-  return weekStartKey();
+  return dayKey(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
 }
 
-// Whether we have a genuine start-of-week baseline to compare against.
-// The very first snapshot is taken mid-week (when the feature first runs), so
-// it isn't a real week boundary; movement is only meaningful once a Monday
-// rollover has produced a second snapshot. Until then everyone shows "new".
+// Whether we have a snapshot at least 7 days old to compare against.
 function hasBaseline() {
-  return snapshots.length >= 2;
+  if (snapshots.length < 2) return false;
+  const target = dayKey(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+  return snapshots[0].weekStart <= target;
 }
 
 // Movement of a player's current rank vs the start-of-week baseline.

@@ -7,7 +7,7 @@ import Resources from "./Resources";
 
 function Movement({ move }) {
   if (!move || move.dir === "new" || move.dir === "same") {
-    const title = (!move || move.dir === "new") ? "New this week" : "No change since the start of the week";
+    const title = (!move || move.dir === "new") ? "New this week" : "No change in the last 7 days";
     return (
       <span title={title} style={{ display: "inline-flex", alignItems: "center" }}>
         <img src="/icons/bar-same.svg" alt={title} height="10" style={{ verticalAlign: "middle" }} />
@@ -17,7 +17,7 @@ function Movement({ move }) {
   const up = move.dir === "up";
   return (
     <span
-      title={`${up ? "Up" : "Down"} ${move.delta} since the start of the week`}
+      title={`${up ? "Up" : "Down"} ${move.delta} in the last 7 days`}
       style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 600, color: up ? "#2ecc71" : "#e74c3c" }}
     >
       <img

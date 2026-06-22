@@ -8,7 +8,7 @@ A real-time TETR.IO leaderboard for the UTS Tetris Elite club. The app polls eac
 
 - **Multi-mode leaderboard** — Sort and view by Tetra League (TR), 40 Lines, Blitz, Quick Play, Expert QP, and All-Time QP
 - **Real-time updates** — Backend polls TETR.IO every 500ms per player; frontend receives updates via Server-Sent Events (SSE)
-- **Weekly Change arrows** — Green up / red down / gray bar icons showing rank movement since the most recent Monday 12am EST. The "since" date updates automatically every Monday.
+- **Daily Change arrows** — Green up / red down / gray bar icons showing rank movement compared to exactly 7 days ago (snapshot taken daily at 12am EST).
 - **Latest News feed** — Pulls from each member's TETR.IO news API: rank-ups, 40L PBs, Blitz PBs, QP PBs (last 7 days)
 - **Mode-specific columns** — Each mode displays the exact columns shown on TETR.IO's official leaderboard pages
 - **Replay links** — Click record values (40L, Blitz, QP, Expert QP) to watch the replay on TETR.IO
@@ -21,7 +21,7 @@ A real-time TETR.IO leaderboard for the UTS Tetris Elite club. The app polls eac
 tetris-leaderboard/
   backend/
     server.js       Express server, TETR.IO API polling, SSE, REST endpoints
-    history.js      Weekly snapshots, Change column logic, TETR.IO news API
+    history.js      Daily snapshots, Change column logic, TETR.IO news API
     members.json    Club member list (realName, username, grade)
   frontend/
     src/
@@ -49,11 +49,11 @@ tetris-leaderboard/
 
 ### `history.js`
 
-- **Weekly snapshots** — Stores rank positions at the start of each week (Monday 00:00 EST). Up to 8 snapshots retained.
-- **`weekStartKey(date)`** — Calculates the most recent Monday in `America/Toronto` timezone
-- **`maybeRollover(ranks, names, letterRanks, pbs)`** — Called each poll cycle; if the current week key differs from the latest snapshot, creates a new snapshot
-- **`getMovement(username, currentRank)`** — Compares current rank against the previous week's snapshot to produce `{ dir: "up"|"down"|"same"|"new", delta }`
-- **`getBaselineWeek()`** — Returns the current week's Monday date for the Change column's "since ..." label (via `weekStartKey()`)
+- **Daily snapshots** — Stores rank positions at 12:00 AM EST each day. Up to 10 snapshots retained.
+- **`dayKey(date)`** — Returns today's date (YYYY-MM-DD) in `America/Toronto` timezone
+- **`maybeRollover(ranks, names, letterRanks, pbs)`** — Called each poll cycle; if the current day key differs from the latest snapshot, creates a new snapshot
+- **`getMovement(username, currentRank)`** — Compares current rank against the snapshot from exactly 7 days ago to produce `{ dir: "up"|"down"|"same"|"new", delta }`
+- **`getBaselineWeek()`** — Returns the date 7 days ago for the Change column's "since ..." label
 - **`fetchAllNews(members)`** — Every 5 minutes, fetches each member's TETR.IO news feed (`/api/news/user_{id}`) for rank-ups and PBs from the last 7 days
 - **GitHub persistence** — Stores `history.json` on a dedicated `leaderboard-data` branch via the GitHub Contents API. Survives Render redeploys. Falls back to a local file if `GITHUB_TOKEN` is not set.
 
@@ -151,7 +151,7 @@ The `username` must match the player's TETR.IO username exactly (case-insensitiv
 
 ## Data Persistence
 
-Weekly snapshots and the Change column baseline are stored in `history.json` on the `leaderboard-data` branch:
+Daily snapshots and the Change column baseline are stored in `history.json` on the `leaderboard-data` branch:
 - [View history.json](https://github.com/ihmttmhi/Tetris-Leaderboard/blob/leaderboard-data/history.json)
 
 The file contains:
