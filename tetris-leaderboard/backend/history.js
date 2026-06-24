@@ -24,7 +24,7 @@ const GITHUB_REPO = process.env.GITHUB_REPO || "ihmttmhi/Tetris-Leaderboard";
 const DATA_BRANCH = process.env.HISTORY_BRANCH || "leaderboard-data";
 const DATA_PATH = process.env.HISTORY_PATH || "history.json";
 const LOCAL_FILE = path.join(__dirname, "history.local.json");
-const MAX_SNAPSHOTS = 14; // keep >7 days of buffer for outage resilience
+const MAX_SNAPSHOT_AGE_DAYS = 30; // delete snapshots older than 30 days
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -237,6 +237,19 @@ async function persist() {
   }
 }
 
+// ----- snapshot pruning -----
+
+// Remove snapshots whose date key is more than MAX_SNAPSHOT_AGE_DAYS old.
+function pruneOldSnapshots() {
+  const cutoff = daysAgoKey(MAX_SNAPSHOT_AGE_DAYS);
+  const before = snapshots.length;
+  snapshots = snapshots.filter((s) => s.weekStart >= cutoff);
+  const pruned = before - snapshots.length;
+  if (pruned > 0) {
+    console.log(`Pruned ${pruned} snapshot(s) older than ${MAX_SNAPSHOT_AGE_DAYS} days`);
+  }
+}
+
 // ----- public API -----
 
 async function init() {
@@ -247,6 +260,7 @@ async function init() {
     console.error("Failed to load history:", safeErrorMsg(err));
     snapshots = [];
   }
+  pruneOldSnapshots();
   loaded = true;
 }
 
@@ -268,9 +282,7 @@ function maybeRollover(currentRanks, currentNames, currentLetterRanks, currentPB
     if (currentPBs.zenith) snap.bestZenith = { ...currentPBs.zenith };
   }
   snapshots.push(snap);
-  if (snapshots.length > MAX_SNAPSHOTS) {
-    snapshots = snapshots.slice(snapshots.length - MAX_SNAPSHOTS);
-  }
+  pruneOldSnapshots();
   persist(); // fire and forget
 }
 
