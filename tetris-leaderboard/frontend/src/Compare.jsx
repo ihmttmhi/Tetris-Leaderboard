@@ -126,7 +126,15 @@ function RadarChart({ labels, datasets, maxVal = 1.5, size = 300 }) {
   );
 }
 
+/* ── Player colors ── */
+
+const P1_COLOR = "#4ea3ff";
+const P2_COLOR = "#e74c3c";
+
 /* ── Stat comparison bar ── */
+
+const BETTER_COLOR = "#2ecc71";
+const NEUTRAL_COLOR = "#555";
 
 function StatBar({ label, val1, val2, higherIsBetter = true, format }) {
   const fmt = format || ((v) => v == null ? "\u2013" : v.toFixed(2));
@@ -136,24 +144,24 @@ function StatBar({ label, val1, val2, higherIsBetter = true, format }) {
 
   const better1 = higherIsBetter ? (val1 || 0) > (val2 || 0) : (val1 || 0) < (val2 || 0);
   const better2 = higherIsBetter ? (val2 || 0) > (val1 || 0) : (val2 || 0) < (val1 || 0);
-  const equal = (val1 || 0) === (val2 || 0);
+  const tied = (val1 || 0) === (val2 || 0);
 
-  const color1 = equal ? "var(--footer-color)" : better1 ? "#2ecc71" : "#e74c3c";
-  const color2 = equal ? "var(--footer-color)" : better2 ? "#2ecc71" : "#e74c3c";
+  const bar1Color = tied ? NEUTRAL_COLOR : better1 ? BETTER_COLOR : NEUTRAL_COLOR;
+  const bar2Color = tied ? NEUTRAL_COLOR : better2 ? BETTER_COLOR : NEUTRAL_COLOR;
 
   return (
     <div style={{ marginBottom: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85em", marginBottom: 2 }}>
-        <span style={{ fontWeight: better1 ? 700 : 400, color: color1 }}>{fmt(val1)}</span>
+        <span style={{ fontWeight: better1 ? 700 : 400, color: P1_COLOR }}>{fmt(val1)}</span>
         <span style={{ fontWeight: 600, fontSize: "0.8em", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--footer-color)" }}>{label}</span>
-        <span style={{ fontWeight: better2 ? 700 : 400, color: color2 }}>{fmt(val2)}</span>
+        <span style={{ fontWeight: better2 ? 700 : 400, color: P2_COLOR }}>{fmt(val2)}</span>
       </div>
       <div style={{ display: "flex", gap: 4, height: 6, borderRadius: 3, overflow: "hidden" }}>
         <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", background: "var(--table-row-even)", borderRadius: "3px 0 0 3px" }}>
-          <div style={{ width: `${Math.abs(pct1)}%`, background: color1, borderRadius: "3px 0 0 3px", transition: "width 0.3s" }} />
+          <div style={{ width: `${Math.abs(pct1)}%`, background: bar1Color, borderRadius: "3px 0 0 3px", transition: "width 0.3s" }} />
         </div>
         <div style={{ flex: 1, display: "flex", justifyContent: "flex-start", background: "var(--table-row-even)", borderRadius: "0 3px 3px 0" }}>
-          <div style={{ width: `${Math.abs(pct2)}%`, background: color2, borderRadius: "0 3px 3px 0", transition: "width 0.3s" }} />
+          <div style={{ width: `${Math.abs(pct2)}%`, background: bar2Color, borderRadius: "0 3px 3px 0", transition: "width 0.3s" }} />
         </div>
       </div>
     </div>
@@ -170,14 +178,14 @@ function WinBar({ name1, name2, prob1, label }) {
         {label}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ fontWeight: 700, fontSize: "0.9em", minWidth: 55, textAlign: "right", color: prob1 >= prob2 ? "#2ecc71" : "var(--text-color)" }}>
+        <span style={{ fontWeight: 700, fontSize: "0.9em", minWidth: 55, textAlign: "right", color: P1_COLOR }}>
           {prob1.toFixed(1)}%
         </span>
         <div style={{ flex: 1, display: "flex", height: 22, borderRadius: 11, overflow: "hidden", border: "1px solid var(--table-border)" }}>
-          <div style={{ width: `${prob1}%`, background: "linear-gradient(90deg, #4ea3ff, #2ecc71)", transition: "width 0.3s" }} />
-          <div style={{ width: `${prob2}%`, background: "linear-gradient(90deg, #e74c3c, #c0392b)", transition: "width 0.3s" }} />
+          <div style={{ width: `${prob1}%`, background: P1_COLOR, transition: "width 0.3s" }} />
+          <div style={{ width: `${prob2}%`, background: P2_COLOR, transition: "width 0.3s" }} />
         </div>
-        <span style={{ fontWeight: 700, fontSize: "0.9em", minWidth: 55, color: prob2 >= prob1 ? "#2ecc71" : "var(--text-color)" }}>
+        <span style={{ fontWeight: 700, fontSize: "0.9em", minWidth: 55, color: P2_COLOR }}>
           {prob2.toFixed(1)}%
         </span>
       </div>
@@ -348,14 +356,14 @@ export default function Compare({ members }) {
               <RadarChart
                 labels={["OPENER", "STRIDE", "INF DS", "PLONK"]}
                 datasets={[
-                  { data: [d1.opener, d1.stride, d1.infds, d1.plonk], color: "#4ea3ff" },
-                  { data: [d2.opener, d2.stride, d2.infds, d2.plonk], color: "#e74c3c" },
+                  { data: [d1.opener, d1.stride, d1.infds, d1.plonk], color: P1_COLOR },
+                  { data: [d2.opener, d2.stride, d2.infds, d2.plonk], color: P2_COLOR },
                 ]}
               />
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 8, fontSize: "0.85em" }}>
-              <span><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: "#4ea3ff", marginRight: 6, verticalAlign: "middle" }} />{player1.username}</span>
-              <span><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: "#e74c3c", marginRight: 6, verticalAlign: "middle" }} />{player2.username}</span>
+              <span><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: P1_COLOR, marginRight: 6, verticalAlign: "middle" }} />{player1.username}</span>
+              <span><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: P2_COLOR, marginRight: 6, verticalAlign: "middle" }} />{player2.username}</span>
             </div>
           </div>
 
@@ -364,7 +372,12 @@ export default function Compare({ members }) {
             padding: "16px 20px", marginBottom: 20, borderRadius: 12,
             border: "1px solid var(--table-border)", background: "var(--table-row-even)",
           }}>
-            <h3 style={{ margin: "0 0 16px", fontSize: "1em", textTransform: "uppercase", letterSpacing: "0.05em" }}>Stat Comparison</h3>
+            <h3 style={{ margin: "0 0 4px", fontSize: "1em", textTransform: "uppercase", letterSpacing: "0.05em" }}>Stat Comparison</h3>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 14, fontSize: "0.75em", color: "var(--footer-color)" }}>
+              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: BETTER_COLOR, marginRight: 4, verticalAlign: "middle" }} />Better value</span>
+              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: P1_COLOR, marginRight: 4, verticalAlign: "middle" }} />Player 1</span>
+              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: P2_COLOR, marginRight: 4, verticalAlign: "middle" }} />Player 2</span>
+            </div>
 
             <h4 style={{ margin: "12px 0 8px", fontSize: "0.85em", color: "var(--footer-color)", textTransform: "uppercase" }}>Core Stats</h4>
             <StatBar label="TR" val1={player1.tr} val2={player2.tr} format={(v) => v ? v.toFixed(2) : "\u2013"} />

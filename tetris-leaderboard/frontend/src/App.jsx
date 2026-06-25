@@ -536,25 +536,25 @@ export default function App() {
         <div style={{ display: "flex", gap: "10px" }}>
           <Link to="/" style={{ textDecoration: "none" }}>
             <button style={tabStyle(location.pathname === "/")}>
-              Leaderboard
+              Rankings
             </button>
           </Link>
 
           <Link to="/bracket" style={{ textDecoration: "none" }}>
             <button style={tabStyle(location.pathname === "/bracket")}>
-              Tournament Bracket
-            </button>
-          </Link>
-
-          <Link to="/resources" style={{ textDecoration: "none" }}>
-            <button style={tabStyle(location.pathname === "/resources")}>
-              Resources
+              Bracket
             </button>
           </Link>
 
           <Link to="/compare" style={{ textDecoration: "none" }}>
             <button style={tabStyle(location.pathname === "/compare")}>
               Compare
+            </button>
+          </Link>
+
+          <Link to="/resources" style={{ textDecoration: "none" }}>
+            <button style={tabStyle(location.pathname === "/resources")}>
+              Resources
             </button>
           </Link>
         </div>
