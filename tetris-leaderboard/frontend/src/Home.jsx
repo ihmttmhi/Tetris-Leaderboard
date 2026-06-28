@@ -32,7 +32,7 @@ export default function Home() {
   return (
     <div style={{ maxWidth: 720, margin: "0 auto" }}>
       <h1 style={{ textAlign: "center", marginBottom: 8 }}>
-        UTS Tetris Elite Leaderboard
+        UTS Tetris Elite
       </h1>
       <p
         style={{
@@ -42,7 +42,7 @@ export default function Home() {
           lineHeight: 1.6,
         }}
       >
-        A real-time TETR.IO leaderboard for the UTS Tetris Elite club. Track
+        A real-time TETR.IO leaderboard for UTS Tetris Elite. Track
         live rankings across multiple game modes, compare players head-to-head,
         and explore modern Tetris resources — all in one place.
       </p>
