@@ -35,8 +35,9 @@ tetris-leaderboard/
     src/
       App.jsx       Main app: leaderboard table, news box, dark mode, routing
       Compare.jsx   Head-to-head player comparison (radar, diamond, stat bars)
+      Home.jsx      Home landing page with site overview and page links
       Bracket.jsx   Tournament Bracket page (hidden until tournament time)
-      Resources.jsx Resources page (maintenance placeholder)
+      Resources.jsx TETR.IO modern Tetris resources (openers, spins, tools, etc.)
       index.css     Global styles, CSS custom properties for theming
       main.jsx      React entry point with BrowserRouter
 ```
@@ -45,10 +46,10 @@ tetris-leaderboard/
 
 | Route | Page | Description |
 |-------|------|-------------|
-| `/` | — | Redirects to `/rankings` |
+| `/` | Home | Landing page with site overview and links to each section |
 | `/rankings` | Rankings | Main leaderboard table with mode sorting, search, and news feed |
 | `/compare` | Compare | Head-to-head player comparison with charts and stat bars |
-| `/resources` | Resources | Community resources (maintenance placeholder) |
+| `/resources` | Resources | Curated TETR.IO modern Tetris resources (openers, stacking, spins, videos, QP guides, tools) |
 | `/bracket` | Bracket | Tournament bracket (hidden from nav until tournament time) |
 
 ## Backend
@@ -99,7 +100,7 @@ tetris-leaderboard/
 - **Column configurations** — `MODE_COLUMNS` maps each sort mode to its set of `<td>` generators, matching TETR.IO's official column layout
 - **Username links** — Each username links to the player's mode-specific TETR.IO profile page (e.g., `/league`, `/40l`, `/blitz`)
 - **Dark mode** — CSS custom properties toggle between dark and light themes; defaults to dark
-- **Routing** — `/` redirects to `/rankings`; Bracket tab hidden from nav until tournament time
+- **Routing** — `/` serves the Home landing page; Bracket tab hidden from nav until tournament time
 
 ### `Compare.jsx`
 

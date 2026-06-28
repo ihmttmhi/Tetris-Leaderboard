@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Link, useLocation, Navigate } from "react-router-dom";
+import { Routes, Route, Link, useLocation } from "react-router-dom";
 import Bracket from "./Bracket";
 import Resources from "./Resources";
 import Compare from "./Compare";
+import Home from "./Home";
 import Rankings from "./Rankings";
 import sortMembers from "./sortMembers";
 
@@ -97,6 +98,12 @@ export default function App() {
       >
         {/* TABS */}
         <div style={{ display: "flex", gap: "10px" }}>
+          <Link to="/" style={{ textDecoration: "none" }}>
+            <button style={tabStyle(location.pathname === "/")}>
+              Home
+            </button>
+          </Link>
+
           <Link to="/rankings" style={{ textDecoration: "none" }}>
             <button style={tabStyle(location.pathname === "/rankings")}>
               Rankings
@@ -155,7 +162,7 @@ export default function App() {
 
       {/* ROUTES */}
       <Routes>
-        <Route path="/" element={<Navigate to="/rankings" replace />} />
+        <Route path="/" element={<Home />} />
         <Route
           path="/rankings"
           element={
