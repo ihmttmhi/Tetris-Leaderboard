@@ -26,7 +26,7 @@ function ExtLink({ href, children }) {
 export default function Resources() {
   return (
     <div style={{ maxWidth: 780, margin: "0 auto" }}>
-      <h1 style={{ textAlign: "center", marginBottom: 8 }}>
+      <h1 style={{ textAlign: "center", fontSize: "2.2em", letterSpacing: "-0.02em", marginBottom: 8 }}>
         TETR.IO Resources
       </h1>
       <p
