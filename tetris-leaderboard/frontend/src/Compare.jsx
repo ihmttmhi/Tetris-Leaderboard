@@ -28,7 +28,7 @@ function derivedStats(m) {
   let estglicko = 0.000013 * (inner ** 3) - 0.0196 * (inner ** 2) + 12.645 * inner - 1005.4;
   estglicko = estglicko * 0.9211 - 49.086;
 
-  // Playstyle scores (0–1 scale, 0.5 = average)
+  // Playstyle scores (0-1 scale, 0.5 = average)
   const opener = clamp(((((apm / srarea) / (0.069 * 1.0017 ** ((sr ** 5) / 4700) + sr / 360) - 1)
     + (((pps / srarea) / (0.0084264 * (2.14 ** (-2 * (sr / 2.7 + 1.03))) - sr / 5750 + 0.0067) - 1) * 0.75)
     + (((vsapm / (-(((sr - 16) / 36) ** 2) + 2.133) - 1)) * -10)
@@ -67,11 +67,11 @@ function winProbability(glicko1, rd1, glicko2, rd2) {
   return (1 / (1 + Math.pow(10, (glicko2 - glicko1) / scaling))) * 100;
 }
 
-/* ── SVG Radar Chart ── */
+/* ── SVG Radar Chart (spider web) ── */
 
-function RadarChart({ labels, datasets, maxVal = 1.5, size = 300 }) {
+function RadarChart({ labels, datasets, maxVal = 1.5, size = 400, gridColor }) {
   const cx = size / 2, cy = size / 2;
-  const r = size * 0.38;
+  const r = size * 0.34;
   const n = labels.length;
   const angleStep = (2 * Math.PI) / n;
   const startAngle = -Math.PI / 2;
@@ -83,40 +83,41 @@ function RadarChart({ labels, datasets, maxVal = 1.5, size = 300 }) {
   };
 
   const gridLevels = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5];
+  const strokeColor = gridColor || "var(--table-border)";
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ maxWidth: "100%" }}>
       {/* Grid rings */}
       {gridLevels.map((lev) => {
         const pts = Array.from({ length: n }, (_, i) => pointFor(i, lev).join(",")).join(" ");
-        return <polygon key={lev} points={pts} fill="none" stroke="var(--table-border)" strokeWidth="0.5" opacity="0.5" />;
+        return <polygon key={lev} points={pts} fill="none" stroke={strokeColor} strokeWidth="0.7" opacity="0.45" />;
       })}
       {/* Axis lines */}
       {labels.map((_, i) => {
         const [ex, ey] = pointFor(i, maxVal);
-        return <line key={i} x1={cx} y1={cy} x2={ex} y2={ey} stroke="var(--table-border)" strokeWidth="0.5" opacity="0.5" />;
+        return <line key={i} x1={cx} y1={cy} x2={ex} y2={ey} stroke={strokeColor} strokeWidth="0.7" opacity="0.45" />;
       })}
       {/* Data polygons */}
       {datasets.map((ds, di) => {
         const pts = Array.from({ length: n }, (_, i) => pointFor(i, ds.data[i]).join(",")).join(" ");
         return (
           <g key={di}>
-            <polygon points={pts} fill={ds.color} fillOpacity="0.25" stroke={ds.color} strokeWidth="2" />
+            <polygon points={pts} fill={ds.color} fillOpacity="0.2" stroke={ds.color} strokeWidth="2" />
             {ds.data.map((val, i) => {
               const [px, py] = pointFor(i, val);
-              return <circle key={i} cx={px} cy={py} r="3" fill={ds.color} />;
+              return <circle key={i} cx={px} cy={py} r="3.5" fill={ds.color} />;
             })}
           </g>
         );
       })}
       {/* Labels */}
       {labels.map((label, i) => {
-        const [lx, ly] = pointFor(i, maxVal + 0.25);
+        const [lx, ly] = pointFor(i, maxVal + 0.32);
         return (
           <text
             key={i} x={lx} y={ly}
             textAnchor="middle" dominantBaseline="middle"
-            fill="var(--text-color)" fontSize="11" fontWeight="600"
+            fill="var(--text-color)" fontSize="10" fontWeight="600"
           >
             {label}
           </text>
@@ -126,10 +127,69 @@ function RadarChart({ labels, datasets, maxVal = 1.5, size = 300 }) {
   );
 }
 
-/* ── Player colors ── */
+/* ── SVG Diamond Chart (playstyle: opener/stride/inf ds/plonk) ── */
+
+function DiamondChart({ labels, datasets, maxVal = 1.5, size = 320, gridColor }) {
+  const cx = size / 2, cy = size / 2;
+  const r = size * 0.32;
+  const n = 4;
+  const angles = [-Math.PI / 2, 0, Math.PI / 2, Math.PI];
+
+  const pointFor = (i, val) => {
+    const angle = angles[i];
+    const dist = (val / maxVal) * r;
+    return [cx + dist * Math.cos(angle), cy + dist * Math.sin(angle)];
+  };
+
+  const gridLevels = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5];
+  const strokeColor = gridColor || "var(--table-border)";
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ maxWidth: "100%" }}>
+      {/* Grid diamonds */}
+      {gridLevels.map((lev) => {
+        const pts = Array.from({ length: n }, (_, i) => pointFor(i, lev).join(",")).join(" ");
+        return <polygon key={lev} points={pts} fill="none" stroke={strokeColor} strokeWidth="0.7" opacity="0.45" />;
+      })}
+      {/* Axis lines */}
+      {[0, 1, 2, 3].map((i) => {
+        const [ex, ey] = pointFor(i, maxVal);
+        return <line key={i} x1={cx} y1={cy} x2={ex} y2={ey} stroke={strokeColor} strokeWidth="0.7" opacity="0.45" />;
+      })}
+      {/* Data polygons */}
+      {datasets.map((ds, di) => {
+        const pts = Array.from({ length: n }, (_, i) => pointFor(i, ds.data[i]).join(",")).join(" ");
+        return (
+          <g key={di}>
+            <polygon points={pts} fill={ds.color} fillOpacity="0.2" stroke={ds.color} strokeWidth="2" />
+            {ds.data.map((val, i) => {
+              const [px, py] = pointFor(i, val);
+              return <circle key={i} cx={px} cy={py} r="3.5" fill={ds.color} />;
+            })}
+          </g>
+        );
+      })}
+      {/* Labels with extra padding to prevent cutoff */}
+      {labels.map((label, i) => {
+        const [lx, ly] = pointFor(i, maxVal + 0.38);
+        return (
+          <text
+            key={i} x={lx} y={ly}
+            textAnchor="middle" dominantBaseline="middle"
+            fill="var(--text-color)" fontSize="12" fontWeight="600"
+          >
+            {label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+/* ── Player colors (blue / pink like sheetBot) ── */
 
 const P1_COLOR = "#4ea3ff";
-const P2_COLOR = "#e74c3c";
+const P2_COLOR = "#e86b9e";
 
 /* ── Stat comparison bar ── */
 
@@ -208,10 +268,10 @@ function playstyleLabel(opener, plonk, stride, infds) {
 
 /* ── Player selector dropdown ── */
 
-function PlayerSelect({ members, selected, onChange, label }) {
+function PlayerSelect({ members, selected, onChange, label, color }) {
   return (
     <div style={{ flex: 1, minWidth: 200 }}>
-      <label style={{ display: "block", fontSize: "0.8em", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--footer-color)", marginBottom: 6 }}>
+      <label style={{ display: "block", fontSize: "0.8em", textTransform: "uppercase", letterSpacing: "0.05em", color: color, marginBottom: 6, fontWeight: 700 }}>
         {label}
       </label>
       <select
@@ -221,7 +281,7 @@ function PlayerSelect({ members, selected, onChange, label }) {
           width: "100%",
           padding: "10px 12px",
           borderRadius: 8,
-          border: "1px solid var(--table-border)",
+          border: `2px solid ${color}`,
           background: "var(--table-header-bg)",
           color: "var(--text-color)",
           fontSize: "1em",
@@ -257,11 +317,100 @@ function RankBadge({ letterRank }) {
   );
 }
 
+/* ── Stat Glossary ── */
+
+const STAT_GLOSSARY = [
+  { name: "APM", desc: "Attack Per Minute. The number of attack lines sent per minute." },
+  { name: "PPS", desc: "Pieces Per Second. How many pieces the player places per second." },
+  { name: "VS", desc: "Versus Score. A combined measure of attack and defence performance per 100 seconds." },
+  { name: "APP", desc: "Attack Per Piece (APM / 60 / PPS). How much attack each placed piece generates." },
+  { name: "DS/Second", desc: "Downstack Per Second (VS/100 - APM/60). Rate of clearing garbage lines per second." },
+  { name: "DS/Piece", desc: "Downstack Per Piece (DS/Second / PPS). Garbage lines cleared per piece placed." },
+  { name: "APP + DS/Piece", desc: "Sum of Attack Per Piece and Downstack Per Piece. Overall efficiency metric." },
+  { name: "VS/APM", desc: "Ratio of VS to APM. Values above 2.0 indicate strong defence; below 2.0 lean offensive." },
+  { name: "Cheese Index", desc: "DSP*150 + (VS/APM - 2)*50 + (0.6 - APP)*125. Lower is better; measures how cleanly a player handles messy boards." },
+  { name: "Garbage Efficiency", desc: "(APP * DS/Second / PPS) * 2. How efficiently garbage lines are converted into useful play." },
+  { name: "Weighted APP", desc: "APP adjusted by cheese index: APP - 5*tan((CI/-30+1)*PI/180). Penalises poor cheese handling." },
+  { name: "Area", desc: "APM*1 + PPS*45 + VS*0.444 + APP*185 + DSS*175 + DSP*450 + GE*315. Weighted overall skill score." },
+  { name: "Estimated Glicko", desc: "Glicko rating estimated from gameplay stats using a polynomial regression model." },
+  { name: "Opener", desc: "Playstyle score measuring how much the player relies on memorised opening sequences. Higher = more opener-focused." },
+  { name: "Plonk", desc: "Playstyle score for placing pieces without finesse. Higher = more defensive, efficiency-oriented stacking." },
+  { name: "Stride", desc: "Playstyle score measuring sustained mid-game speed. Higher = faster continuous play rather than burst openers." },
+  { name: "Inf DS", desc: "Infinite Downstack. Playstyle score for clearing garbage endlessly. Higher = focuses on defence over attack." },
+  { name: "Win Rate", desc: "Games won divided by games played in Tetra League, shown as a percentage." },
+  { name: "TR", desc: "Tetra Rating. The overall competitive rating in Tetra League, derived from Glicko." },
+  { name: "Glicko", desc: "The Glicko-2 rating used internally by TETR.IO for matchmaking." },
+  { name: "RD", desc: "Rating Deviation. Uncertainty in the Glicko rating; lower means more confident." },
+];
+
+function StatGlossary() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{
+      padding: "16px 20px", marginBottom: 20, borderRadius: 12,
+      border: "1px solid var(--table-border)", background: "var(--table-row-even)",
+    }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          background: "none", border: "none", cursor: "pointer", color: "var(--text-color)",
+          fontSize: "1em", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em",
+          display: "flex", alignItems: "center", gap: 8, padding: 0, width: "100%",
+        }}
+      >
+        <span style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s", display: "inline-block" }}>&#9654;</span>
+        Stat Glossary
+      </button>
+      {open && (
+        <div style={{ marginTop: 12 }}>
+          {STAT_GLOSSARY.map((s) => (
+            <div key={s.name} style={{ marginBottom: 8, fontSize: "0.85em" }}>
+              <span style={{ fontWeight: 700, color: "var(--link-color)" }}>{s.name}</span>
+              <span style={{ color: "var(--footer-color)" }}> &mdash; {s.desc}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Normalize spider web values to 0-1.5 range for radar display ── */
+
+function normalizeWebStats(player, derived) {
+  const apm = player.apm || 0;
+  const pps = player.pps || 0;
+  const vs = player.vs || 0;
+  const maxRanges = {
+    apm: 120, pps: 3.5, vs: 250,
+    app: 0.8, dss: 1.5, dsp: 0.6,
+    dsapp: 1.0, vsapm: 3.0, ci: 80, ge: 0.5,
+  };
+  return {
+    apm: Math.min((apm / maxRanges.apm) * 1.5, 1.5),
+    pps: Math.min((pps / maxRanges.pps) * 1.5, 1.5),
+    vs: Math.min((vs / maxRanges.vs) * 1.5, 1.5),
+    app: Math.min((derived.app / maxRanges.app) * 1.5, 1.5),
+    dss: Math.min((Math.max(0, derived.dss) / maxRanges.dss) * 1.5, 1.5),
+    dsp: Math.min((Math.max(0, derived.dsp) / maxRanges.dsp) * 1.5, 1.5),
+    dsapp: Math.min((Math.max(0, derived.dsapp) / maxRanges.dsapp) * 1.5, 1.5),
+    vsapm: Math.min((derived.vsapm / maxRanges.vsapm) * 1.5, 1.5),
+    ci: Math.min((Math.max(0, maxRanges.ci - derived.ci) / maxRanges.ci) * 1.5, 1.5),
+    ge: Math.min((Math.max(0, derived.ge) / maxRanges.ge) * 1.5, 1.5),
+  };
+}
+
 /* ── Main Compare component ── */
 
-export default function Compare({ members }) {
+export default function Compare({ members, darkMode }) {
   const [p1, setP1] = useState("");
   const [p2, setP2] = useState("");
+
+  // Filter out players with no Tetra League games
+  const tlMembers = useMemo(() =>
+    members.filter((m) => m.gamesPlayed > 0 && m.pps > 0),
+    [members]
+  );
 
   const player1 = members.find((m) => m.username === p1);
   const player2 = members.find((m) => m.username === p2);
@@ -277,14 +426,23 @@ export default function Compare({ members }) {
 
   const fmtPct = (v) => v == null ? "\u2013" : (v * 100).toFixed(1) + "%";
 
+  // Grid color: white in dark mode, default in light mode
+  const chartGridColor = darkMode ? "rgba(255,255,255,0.6)" : "var(--table-border)";
+
+  // Normalized web stats for spider web radar
+  const web1 = bothSelected ? normalizeWebStats(player1, d1) : null;
+  const web2 = bothSelected ? normalizeWebStats(player2, d2) : null;
+
+  const spiderLabels = ["APM", "PPS", "VS", "APP", "DS/S", "DS/P", "APP+DSP", "VS/APM", "CHEESE", "GARB EFF"];
+
   return (
     <div>
       <h1 style={{ fontSize: "2.2em", letterSpacing: "-0.02em", marginBottom: 16 }}>Head-to-Head Compare</h1>
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
-        <PlayerSelect members={members} selected={p1} onChange={setP1} label="Player 1" />
+        <PlayerSelect members={tlMembers} selected={p1} onChange={setP1} label="Player 1" color={P1_COLOR} />
         <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: 4, fontWeight: 700, fontSize: "1.2em", color: "var(--footer-color)" }}>VS</div>
-        <PlayerSelect members={members} selected={p2} onChange={setP2} label="Player 2" />
+        <PlayerSelect members={tlMembers} selected={p2} onChange={setP2} label="Player 2" color={P2_COLOR} />
       </div>
 
       {p1 && p2 && p1 === p2 && (
@@ -303,27 +461,27 @@ export default function Compare({ members }) {
             background: "linear-gradient(135deg, var(--table-header-bg), var(--table-row-even))",
           }}>
             <div style={{ textAlign: "center", flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: "1.3em" }}>{player1.realName || player1.username}</div>
-              <div style={{ fontSize: "0.85em", color: "var(--footer-color)" }}>
-                <a href={`https://ch.tetr.io/u/${player1.username}`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--link-color)" }}>
+              <div style={{ fontWeight: 700, fontSize: "1.3em", color: P1_COLOR }}>{player1.realName || player1.username}</div>
+              <div style={{ fontSize: "0.85em" }}>
+                <a href={`https://ch.tetr.io/u/${player1.username}`} target="_blank" rel="noopener noreferrer" style={{ color: P1_COLOR }}>
                   {player1.username}
                 </a>
               </div>
               <div style={{ marginTop: 4 }}><RankBadge letterRank={player1.letterRank} /></div>
-              {d1 && <div style={{ fontSize: "0.75em", color: "var(--footer-color)", marginTop: 4 }}>{playstyleLabel(d1.opener, d1.plonk, d1.stride, d1.infds)}</div>}
+              {d1 && <div style={{ fontSize: "0.75em", color: P1_COLOR, marginTop: 4 }}>{playstyleLabel(d1.opener, d1.plonk, d1.stride, d1.infds)}</div>}
             </div>
 
             <div style={{ fontWeight: 800, fontSize: "1.5em", color: "var(--footer-color)", padding: "0 20px" }}>VS</div>
 
             <div style={{ textAlign: "center", flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: "1.3em" }}>{player2.realName || player2.username}</div>
-              <div style={{ fontSize: "0.85em", color: "var(--footer-color)" }}>
-                <a href={`https://ch.tetr.io/u/${player2.username}`} target="_blank" rel="noopener noreferrer" style={{ color: "var(--link-color)" }}>
+              <div style={{ fontWeight: 700, fontSize: "1.3em", color: P2_COLOR }}>{player2.realName || player2.username}</div>
+              <div style={{ fontSize: "0.85em" }}>
+                <a href={`https://ch.tetr.io/u/${player2.username}`} target="_blank" rel="noopener noreferrer" style={{ color: P2_COLOR }}>
                   {player2.username}
                 </a>
               </div>
               <div style={{ marginTop: 4 }}><RankBadge letterRank={player2.letterRank} /></div>
-              {d2 && <div style={{ fontSize: "0.75em", color: "var(--footer-color)", marginTop: 4 }}>{playstyleLabel(d2.opener, d2.plonk, d2.stride, d2.infds)}</div>}
+              {d2 && <div style={{ fontSize: "0.75em", color: P2_COLOR, marginTop: 4 }}>{playstyleLabel(d2.opener, d2.plonk, d2.stride, d2.infds)}</div>}
             </div>
           </div>
 
@@ -346,24 +504,48 @@ export default function Compare({ members }) {
             )}
           </div>
 
-          {/* Playstyle radar chart */}
+          {/* Spider web radar chart (10 axes) */}
           <div style={{
             padding: "16px 20px", marginBottom: 20, borderRadius: 12,
             border: "1px solid var(--table-border)", background: "var(--table-row-even)",
           }}>
-            <h3 style={{ margin: "0 0 12px", fontSize: "1em", textTransform: "uppercase", letterSpacing: "0.05em" }}>Playstyle Comparison</h3>
+            <h3 style={{ margin: "0 0 12px", fontSize: "1em", textTransform: "uppercase", letterSpacing: "0.05em" }}>Stat Radar</h3>
             <div style={{ display: "flex", justifyContent: "center" }}>
               <RadarChart
-                labels={["OPENER", "STRIDE", "INF DS", "PLONK"]}
+                labels={spiderLabels}
                 datasets={[
-                  { data: [d1.opener, d1.stride, d1.infds, d1.plonk], color: P1_COLOR },
-                  { data: [d2.opener, d2.stride, d2.infds, d2.plonk], color: P2_COLOR },
+                  { data: [web1.apm, web1.pps, web1.vs, web1.app, web1.dss, web1.dsp, web1.dsapp, web1.vsapm, web1.ci, web1.ge], color: P1_COLOR },
+                  { data: [web2.apm, web2.pps, web2.vs, web2.app, web2.dss, web2.dsp, web2.dsapp, web2.vsapm, web2.ci, web2.ge], color: P2_COLOR },
                 ]}
+                size={420}
+                gridColor={chartGridColor}
               />
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 8, fontSize: "0.85em" }}>
-              <span><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: P1_COLOR, marginRight: 6, verticalAlign: "middle" }} />{player1.username}</span>
-              <span><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: P2_COLOR, marginRight: 6, verticalAlign: "middle" }} />{player2.username}</span>
+              <span><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: P1_COLOR, marginRight: 6, verticalAlign: "middle" }} /><span style={{ color: P1_COLOR, fontWeight: 600 }}>{player1.username}</span></span>
+              <span><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: P2_COLOR, marginRight: 6, verticalAlign: "middle" }} /><span style={{ color: P2_COLOR, fontWeight: 600 }}>{player2.username}</span></span>
+            </div>
+          </div>
+
+          {/* Playstyle diamond chart (4 axes) */}
+          <div style={{
+            padding: "16px 20px", marginBottom: 20, borderRadius: 12,
+            border: "1px solid var(--table-border)", background: "var(--table-row-even)",
+          }}>
+            <h3 style={{ margin: "0 0 12px", fontSize: "1em", textTransform: "uppercase", letterSpacing: "0.05em" }}>Playstyle Diamond</h3>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <DiamondChart
+                labels={["OPENER", "STRIDE", "PLONK", "INF DS"]}
+                datasets={[
+                  { data: [d1.opener, d1.stride, d1.plonk, d1.infds], color: P1_COLOR },
+                  { data: [d2.opener, d2.stride, d2.plonk, d2.infds], color: P2_COLOR },
+                ]}
+                gridColor={chartGridColor}
+              />
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 8, fontSize: "0.85em" }}>
+              <span><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: P1_COLOR, marginRight: 6, verticalAlign: "middle" }} /><span style={{ color: P1_COLOR, fontWeight: 600 }}>{player1.username}</span></span>
+              <span><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 2, background: P2_COLOR, marginRight: 6, verticalAlign: "middle" }} /><span style={{ color: P2_COLOR, fontWeight: 600 }}>{player2.username}</span></span>
             </div>
           </div>
 
@@ -375,8 +557,8 @@ export default function Compare({ members }) {
             <h3 style={{ margin: "0 0 4px", fontSize: "1em", textTransform: "uppercase", letterSpacing: "0.05em" }}>Stat Comparison</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 14, fontSize: "0.75em", color: "var(--footer-color)" }}>
               <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: BETTER_COLOR, marginRight: 4, verticalAlign: "middle" }} />Better value</span>
-              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: P1_COLOR, marginRight: 4, verticalAlign: "middle" }} />Player 1</span>
-              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: P2_COLOR, marginRight: 4, verticalAlign: "middle" }} />Player 2</span>
+              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: P1_COLOR, marginRight: 4, verticalAlign: "middle" }} /><span style={{ color: P1_COLOR }}>Player 1</span></span>
+              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: P2_COLOR, marginRight: 4, verticalAlign: "middle" }} /><span style={{ color: P2_COLOR }}>Player 2</span></span>
             </div>
 
             <h4 style={{ margin: "12px 0 8px", fontSize: "0.85em", color: "var(--footer-color)", textTransform: "uppercase" }}>Core Stats</h4>
@@ -416,6 +598,9 @@ export default function Compare({ members }) {
               <StatBar label="Est. Glicko" val1={d1.estglicko} val2={d2.estglicko} format={(v) => v ? Math.round(v).toLocaleString() : "\u2013"} />
             </div>
           )}
+
+          {/* Stat Glossary */}
+          <StatGlossary />
         </>
       )}
 
