@@ -14,6 +14,14 @@ A real-time TETR.IO leaderboard for the UTS Tetris Elite club. The app polls eac
 - **Replay links** — Click record values (40L, Blitz, QP, Expert QP) to watch the replay on TETR.IO
 - **Dark/Light mode** — Sun/moon SVG toggle (defaults to dark mode)
 - **Search** — Filter players by name or username
+- **Head-to-Head Compare** — Select two players to see:
+  - Win probability (Glicko-based and stat-estimated)
+  - 10-axis spider web radar chart (APM, PPS, VS, APP, DS/S, DS/P, APP+DSP, VS/APM, Cheese Index, Garbage Efficiency)
+  - Playstyle diamond chart (Opener, Stride, Plonk, Inf DS)
+  - Side-by-side stat comparison bars with green=better highlighting
+  - Collapsible stat glossary explaining every metric
+  - Player 1 shown in blue, Player 2 in pink (sheetBot style)
+  - Only players with Tetra League games appear in the dropdown
 
 ## Architecture
 
@@ -26,11 +34,22 @@ tetris-leaderboard/
   frontend/
     src/
       App.jsx       Main app: leaderboard table, news box, dark mode, routing
-      Bracket.jsx   Tournament Bracket page (maintenance placeholder)
+      Compare.jsx   Head-to-head player comparison (radar, diamond, stat bars)
+      Bracket.jsx   Tournament Bracket page (hidden until tournament time)
       Resources.jsx Resources page (maintenance placeholder)
       index.css     Global styles, CSS custom properties for theming
       main.jsx      React entry point with BrowserRouter
 ```
+
+## Pages & Routing
+
+| Route | Page | Description |
+|-------|------|-------------|
+| `/` | — | Redirects to `/rankings` |
+| `/rankings` | Rankings | Main leaderboard table with mode sorting, search, and news feed |
+| `/compare` | Compare | Head-to-head player comparison with charts and stat bars |
+| `/resources` | Resources | Community resources (maintenance placeholder) |
+| `/bracket` | Bracket | Tournament bracket (hidden from nav until tournament time) |
 
 ## Backend
 
@@ -80,11 +99,53 @@ tetris-leaderboard/
 - **Column configurations** — `MODE_COLUMNS` maps each sort mode to its set of `<td>` generators, matching TETR.IO's official column layout
 - **Username links** — Each username links to the player's mode-specific TETR.IO profile page (e.g., `/league`, `/40l`, `/blitz`)
 - **Dark mode** — CSS custom properties toggle between dark and light themes; defaults to dark
+- **Routing** — `/` redirects to `/rankings`; Bracket tab hidden from nav until tournament time
+
+### `Compare.jsx`
+
+- **Spider web radar chart** — 10-axis radar displaying APM, PPS, VS, APP, DS/Second, DS/Piece, APP+DS/Piece, VS/APM, Cheese Index, and Garbage Efficiency (normalized to a 0-1.5 scale)
+- **Playstyle diamond chart** — 4-axis diamond showing Opener, Stride, Plonk, Inf DS playstyle scores
+- **Player colors** — Player 1 in blue (#4ea3ff), Player 2 in pink (#e86b9e), consistent across all UI elements (like sheetBot)
+- **Dark mode grids** — Chart grid lines are white in dark mode, default in light mode
+- **Stat comparison bars** — Side-by-side bars with green highlighting for the better value
+- **Win probability** — Glicko-based and stat-estimated win probability bars
+- **Player filtering** — Only players who have played Tetra League games appear in the dropdown
+- **Stat glossary** — Collapsible section explaining every stat and derived metric
+- **Derived stats** — All calculations ported from sheetBot: APP, DS/S, DS/P, Cheese Index, Garbage Efficiency, Weighted APP, Area, SR, estimated Glicko, and playstyle scores
+
+### `main.jsx`
+
+- React entry point that wraps the `App` component in a `BrowserRouter` for client-side routing
 
 ### `index.css`
 
 - CSS custom properties for theming: `--bg-color`, `--text-color`, `--table-border`, `--table-header-bg`, `--table-row-even`, `--table-row-odd`, `--footer-color`
 - Light mode overrides via `body.light-mode`
+
+## Compare Page: How It Works
+
+1. **Select two players** from the dropdown (only players with TL stats are shown)
+2. **Derived stats** are computed from each player's APM, PPS, and VS using formulas ported from sheetBot
+3. **Win probability** is calculated via the Glicko-2 expected-score formula
+4. **Spider web** normalizes 10 stats (APM, PPS, VS, APP, DS/S, DS/P, APP+DSP, VS/APM, Cheese Index, Garbage Efficiency) to a 0-1.5 scale for visual comparison on a radar chart
+5. **Diamond chart** plots the four playstyle scores (Opener, Stride, Plonk, Inf DS) on a rotated square
+6. **Stat bars** show each stat side-by-side; green = better, with Player 1 (blue) on the left and Player 2 (pink) on the right
+7. **Stat glossary** (collapsible) explains every metric
+
+### How Derived Stats Are Calculated
+
+| Stat | Formula | Source |
+|------|---------|--------|
+| APP | APM / 60 / PPS | sheetBot |
+| DS/Second | VS/100 - APM/60 | sheetBot |
+| DS/Piece | DS/Second / PPS | sheetBot |
+| APP+DSP | APP + DS/Piece | sheetBot |
+| VS/APM | VS / APM | sheetBot |
+| Cheese Index | DSP*150 + (VS/APM-2)*50 + (0.6-APP)*125 | sheetBot |
+| Garbage Efficiency | (APP * DS/Second / PPS) * 2 | sheetBot |
+| Weighted APP | APP - 5*tan((CI/-30+1)*PI/180) | sheetBot |
+| Area | APM*1 + PPS*45 + VS*0.444 + APP*185 + DSS*175 + DSP*450 + GE*315 | sheetBot |
+| Opener/Plonk/Stride/Inf DS | Complex SR-weighted formulas (see `Compare.jsx`) | sheetBot |
 
 ## Environment Variables
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { Routes, Route, Link, useLocation, Navigate } from "react-router-dom";
 import Bracket from "./Bracket";
 import Resources from "./Resources";
 import Compare from "./Compare";
@@ -534,15 +534,9 @@ export default function App() {
       >
         {/* TABS */}
         <div style={{ display: "flex", gap: "10px" }}>
-          <Link to="/" style={{ textDecoration: "none" }}>
-            <button style={tabStyle(location.pathname === "/")}>
+          <Link to="/rankings" style={{ textDecoration: "none" }}>
+            <button style={tabStyle(location.pathname === "/rankings")}>
               Rankings
-            </button>
-          </Link>
-
-          <Link to="/bracket" style={{ textDecoration: "none" }}>
-            <button style={tabStyle(location.pathname === "/bracket")}>
-              Bracket
             </button>
           </Link>
 
@@ -598,8 +592,9 @@ export default function App() {
 
       {/* ROUTES */}
       <Routes>
+        <Route path="/" element={<Navigate to="/rankings" replace />} />
         <Route
-          path="/"
+          path="/rankings"
           element={
             <Leaderboard
               members={sortMembers(members, sortMode)}
@@ -616,7 +611,7 @@ export default function App() {
 
         <Route path="/bracket" element={<Bracket />} />
         <Route path="/resources" element={<Resources />} />
-        <Route path="/compare" element={<Compare members={members} />} />
+        <Route path="/compare" element={<Compare members={members} darkMode={darkMode} />} />
       </Routes>
     </div>
   );
