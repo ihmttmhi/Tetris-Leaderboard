@@ -1,9 +1,5 @@
 import React from "react";
 
-const sectionStyle = {
-  marginBottom: 32,
-};
-
 const listStyle = {
   listStyleType: "disc",
   paddingLeft: 24,
@@ -46,7 +42,7 @@ export default function Resources() {
 
       {/* Openers */}
       <div style={cardStyle}>
-        <h2 style={sectionStyle.heading}>Openers</h2>
+        <h2>Openers</h2>
         <ul style={listStyle}>
           <li>
             <ExtLink href="https://four.lol/openers/tki">
