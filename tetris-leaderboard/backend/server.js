@@ -47,6 +47,12 @@ let leaderboardCache = {};
 let currentIndex = 0;
 const sseClients = new Set();
 
+// ===== SSE CONNECTION LIMITS =====
+const SSE_MAX_CONNECTIONS = parseInt(process.env.SSE_MAX_CONNECTIONS) || 200;
+const SSE_MAX_PER_IP = parseInt(process.env.SSE_MAX_PER_IP) || 5;
+const SSE_TIMEOUT_MS = parseInt(process.env.SSE_TIMEOUT_MS) || 30 * 60 * 1000; // 30 min
+const sseConnectionsByIP = new Map(); // IP -> count
+
 // Load members from JSON
 function loadMembers() {
   try {
@@ -267,6 +273,16 @@ function notifyClients() {
 
 // SSE endpoint — pushes leaderboard after each player fetch
 app.get("/api/leaderboard/stream", (req, res) => {
+  if (sseClients.size >= SSE_MAX_CONNECTIONS) {
+    return res.status(503).json({ error: "Too many active connections, please try again later." });
+  }
+
+  const clientIP = req.ip;
+  const ipCount = sseConnectionsByIP.get(clientIP) || 0;
+  if (ipCount >= SSE_MAX_PER_IP) {
+    return res.status(429).json({ error: "Too many concurrent connections from this IP." });
+  }
+
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -280,7 +296,22 @@ app.get("/api/leaderboard/stream", (req, res) => {
   }
 
   sseClients.add(res);
-  req.on("close", () => sseClients.delete(res));
+  sseConnectionsByIP.set(clientIP, ipCount + 1);
+
+  const timeout = setTimeout(() => {
+    res.end();
+  }, SSE_TIMEOUT_MS);
+
+  req.on("close", () => {
+    clearTimeout(timeout);
+    sseClients.delete(res);
+    const remaining = (sseConnectionsByIP.get(clientIP) || 1) - 1;
+    if (remaining <= 0) {
+      sseConnectionsByIP.delete(clientIP);
+    } else {
+      sseConnectionsByIP.set(clientIP, remaining);
+    }
+  });
 });
 
 // API endpoint
