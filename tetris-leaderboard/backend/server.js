@@ -286,11 +286,15 @@ app.get("/api/leaderboard/stream", (req, res) => {
     return sendSSEError("Server is at capacity. Please try again later.");
   }
 
-  const clientIP = req.ip;
+  const rawIP = req.ip || "unknown";
+  const clientIP = rawIP.replace(/^::ffff:/, "");
   const ipCount = sseConnectionsByIP.get(clientIP) || 0;
   if (ipCount >= SSE_MAX_PER_IP) {
     return sendSSEError("You already have the leaderboard open in another tab. Please close other tabs and refresh.");
   }
+
+  // Reserve the slot immediately before any I/O to prevent races
+  sseConnectionsByIP.set(clientIP, ipCount + 1);
 
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -305,7 +309,6 @@ app.get("/api/leaderboard/stream", (req, res) => {
   }
 
   sseClients.add(res);
-  sseConnectionsByIP.set(clientIP, ipCount + 1);
 
   const timeout = setTimeout(() => {
     res.end();
