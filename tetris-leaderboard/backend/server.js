@@ -50,9 +50,11 @@ const sseClients = new Set();
 // ===== SSE CONNECTION LIMITS =====
 const SSE_MAX_CONNECTIONS = parseInt(process.env.SSE_MAX_CONNECTIONS) || 250;
 // Loose per-IP cap: purely a DoS guard. Single-tab-per-browser is enforced
-// client-side via the Web Locks API, so this only needs to allow for several
-// legitimate people/devices sharing one public IP (NAT / same WiFi).
-const SSE_MAX_PER_IP = parseInt(process.env.SSE_MAX_PER_IP) || 5;
+// client-side via the Web Locks API, so this only needs to allow for the many
+// legitimate people/devices that can share one public IP (NAT / same WiFi,
+// e.g. a school network during a club meeting) while still capping how many
+// concurrent connections a single-IP attacker can hold.
+const SSE_MAX_PER_IP = parseInt(process.env.SSE_MAX_PER_IP) || 20;
 const SSE_TIMEOUT_MS = parseInt(process.env.SSE_TIMEOUT_MS) || 30 * 60 * 1000; // 30 min
 const sseConnectionsByIP = new Map(); // IP -> count
 
