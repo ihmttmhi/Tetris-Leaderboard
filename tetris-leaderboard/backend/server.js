@@ -273,14 +273,23 @@ function notifyClients() {
 
 // SSE endpoint — pushes leaderboard after each player fetch
 app.get("/api/leaderboard/stream", (req, res) => {
+  const sendSSEError = (reason) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+    res.write(`event: connection_error\ndata: ${JSON.stringify({ error: reason })}\n\n`);
+    res.end();
+  };
+
   if (sseClients.size >= SSE_MAX_CONNECTIONS) {
-    return res.status(503).json({ error: "Too many active connections, please try again later." });
+    return sendSSEError("Server is at capacity. Please try again later.");
   }
 
   const clientIP = req.ip;
   const ipCount = sseConnectionsByIP.get(clientIP) || 0;
   if (ipCount >= SSE_MAX_PER_IP) {
-    return res.status(429).json({ error: "Too many concurrent connections from this IP." });
+    return sendSSEError("You already have the leaderboard open in another tab. Please close other tabs and refresh.");
   }
 
   res.setHeader("Content-Type", "text/event-stream");
