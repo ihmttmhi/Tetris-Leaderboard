@@ -48,8 +48,8 @@ let currentIndex = 0;
 const sseClients = new Set();
 
 // ===== SSE CONNECTION LIMITS =====
-const SSE_MAX_CONNECTIONS = parseInt(process.env.SSE_MAX_CONNECTIONS) || 200;
-const SSE_MAX_PER_IP = parseInt(process.env.SSE_MAX_PER_IP) || 5;
+const SSE_MAX_CONNECTIONS = parseInt(process.env.SSE_MAX_CONNECTIONS) || 250;
+const SSE_MAX_PER_IP = parseInt(process.env.SSE_MAX_PER_IP) || 1;
 const SSE_TIMEOUT_MS = parseInt(process.env.SSE_TIMEOUT_MS) || 30 * 60 * 1000; // 30 min
 const sseConnectionsByIP = new Map(); // IP -> count
 
