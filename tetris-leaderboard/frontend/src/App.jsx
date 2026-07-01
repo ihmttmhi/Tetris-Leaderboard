@@ -16,6 +16,7 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [fetchError, setFetchError] = useState(null);
+  const [connectionBlocked, setConnectionBlocked] = useState(null);
   const [sortMode, setSortMode] = useState("tr");
   const location = useLocation();
 
@@ -62,6 +63,15 @@ export default function App() {
         console.error("Failed to parse SSE data:", err);
       }
     };
+    es.addEventListener("connection_error", (event) => {
+      try {
+        const { error } = JSON.parse(event.data);
+        setConnectionBlocked(error);
+      } catch {
+        setConnectionBlocked("Too many connections. Please close other tabs and refresh.");
+      }
+      es.close();
+    });
     es.onerror = () => {
       setFetchError("Live connection lost — retrying...");
     };
@@ -77,6 +87,30 @@ export default function App() {
     color: active ? "#fff" : "var(--text-color)",
     cursor: "pointer"
   });
+
+  if (connectionBlocked) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "100vh",
+          background: "var(--bg-color)",
+          color: "var(--text-color)",
+          padding: 40,
+          textAlign: "center",
+        }}
+      >
+        <div style={{ fontSize: "3em", marginBottom: 20 }}>&#x26A0;</div>
+        <h1 style={{ fontSize: "1.5em", marginBottom: 12 }}>Connection Limit Reached</h1>
+        <p style={{ fontSize: "1.1em", maxWidth: 500, lineHeight: 1.6, color: "var(--footer-color)" }}>
+          {connectionBlocked}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div
