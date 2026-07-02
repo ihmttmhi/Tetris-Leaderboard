@@ -48,15 +48,14 @@ let currentIndex = 0;
 const sseClients = new Set();
 
 // ===== SSE CONNECTION LIMITS =====
+// Global cap is the primary DoS defense: it bounds total open connections so
+// the server can't exhaust file descriptors / memory regardless of source.
+// Per-browser single-tab enforcement is handled client-side via the Web Locks
+// API (see frontend). No per-IP cap: on shared networks (school WiFi / NAT)
+// all legitimate users share one public IP, so a per-IP cap would wrongly
+// block them.
 const SSE_MAX_CONNECTIONS = parseInt(process.env.SSE_MAX_CONNECTIONS) || 250;
-// Loose per-IP cap: purely a DoS guard. Single-tab-per-browser is enforced
-// client-side via the Web Locks API, so this only needs to allow for the many
-// legitimate people/devices that can share one public IP (NAT / same WiFi,
-// e.g. a school network during a club meeting) while still capping how many
-// concurrent connections a single-IP attacker can hold.
-const SSE_MAX_PER_IP = parseInt(process.env.SSE_MAX_PER_IP) || 20;
 const SSE_TIMEOUT_MS = parseInt(process.env.SSE_TIMEOUT_MS) || 30 * 60 * 1000; // 30 min
-const sseConnectionsByIP = new Map(); // IP -> count
 
 // Load members from JSON
 function loadMembers() {
@@ -291,16 +290,6 @@ app.get("/api/leaderboard/stream", (req, res) => {
     return sendSSEError("Server is at capacity. Please try again later.");
   }
 
-  const rawIP = req.ip || "unknown";
-  const clientIP = rawIP.replace(/^::ffff:/, "");
-  const ipCount = sseConnectionsByIP.get(clientIP) || 0;
-  if (ipCount >= SSE_MAX_PER_IP) {
-    return sendSSEError("You already have the leaderboard open in another tab. Please close other tabs and refresh.");
-  }
-
-  // Reserve the slot immediately before any I/O to prevent races
-  sseConnectionsByIP.set(clientIP, ipCount + 1);
-
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -322,12 +311,6 @@ app.get("/api/leaderboard/stream", (req, res) => {
   req.on("close", () => {
     clearTimeout(timeout);
     sseClients.delete(res);
-    const remaining = (sseConnectionsByIP.get(clientIP) || 1) - 1;
-    if (remaining <= 0) {
-      sseConnectionsByIP.delete(clientIP);
-    } else {
-      sseConnectionsByIP.set(clientIP, remaining);
-    }
   });
 });
 
