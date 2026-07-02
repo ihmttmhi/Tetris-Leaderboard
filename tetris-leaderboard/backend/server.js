@@ -7,6 +7,7 @@ const rateLimit = require("express-rate-limit");
 const fs = require("fs");
 const axios = require("axios");
 const path = require("path");
+const crypto = require("crypto");
 const history = require("./history");
 
 const app = express();
@@ -56,6 +57,15 @@ const sseClients = new Set();
 // block them.
 const SSE_MAX_CONNECTIONS = parseInt(process.env.SSE_MAX_CONNECTIONS) || 250;
 const SSE_TIMEOUT_MS = parseInt(process.env.SSE_TIMEOUT_MS) || 30 * 60 * 1000; // 30 min
+
+// ===== ADMIN PANEL =====
+// Password lives ONLY in the ADMIN_PASSWORD env var (set on Render), never in
+// the repo. If it's unset, the admin panel is disabled entirely.
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+const ADMIN_SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
+const adminSessions = new Map(); // sessionToken -> expiresAt (ms)
+const sseConnectionMeta = new Map(); // res -> { ip, userAgent, connectedAt }
+const SERVER_START_TIME = Date.now();
 
 // Load members from JSON
 function loadMembers() {
@@ -303,6 +313,11 @@ app.get("/api/leaderboard/stream", (req, res) => {
   }
 
   sseClients.add(res);
+  sseConnectionMeta.set(res, {
+    ip: (req.ip || "unknown").replace(/^::ffff:/, ""),
+    userAgent: req.get("user-agent") || "unknown",
+    connectedAt: Date.now(),
+  });
 
   const timeout = setTimeout(() => {
     res.end();
@@ -311,6 +326,7 @@ app.get("/api/leaderboard/stream", (req, res) => {
   req.on("close", () => {
     clearTimeout(timeout);
     sseClients.delete(res);
+    sseConnectionMeta.delete(res);
   });
 });
 
@@ -322,6 +338,129 @@ app.get("/api/leaderboard", (req, res) => {
     console.error("Error building leaderboard response:", err);
     res.status(500).json({ error: "Internal server error" });
   }
+});
+
+// ===== ADMIN PANEL ROUTES =====
+function parseCookies(req) {
+  const out = {};
+  const header = req.headers.cookie;
+  if (!header) return out;
+  for (const part of header.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx === -1) continue;
+    const key = part.slice(0, idx).trim();
+    if (key) out[key] = decodeURIComponent(part.slice(idx + 1).trim());
+  }
+  return out;
+}
+
+// Constant-time password check: hash both sides to a fixed length first so we
+// never leak the password length or short-circuit on the first wrong character.
+function passwordMatches(provided) {
+  const a = crypto.createHash("sha256").update(String(provided)).digest();
+  const b = crypto.createHash("sha256").update(ADMIN_PASSWORD).digest();
+  return crypto.timingSafeEqual(a, b);
+}
+
+function pruneAdminSessions() {
+  const now = Date.now();
+  for (const [token, exp] of adminSessions) {
+    if (exp < now) adminSessions.delete(token);
+  }
+}
+
+function requireAdmin(req, res, next) {
+  if (!ADMIN_PASSWORD) {
+    return res.status(503).json({ error: "Admin panel is not configured." });
+  }
+  const token = parseCookies(req).admin_session;
+  const exp = token ? adminSessions.get(token) : null;
+  if (!exp || exp < Date.now()) {
+    if (token) adminSessions.delete(token);
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+  next();
+}
+
+// Stricter limiter on login to slow brute-force guessing.
+const adminLoginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many login attempts, please wait a minute." },
+});
+
+app.post("/api/admin/login", adminLoginLimiter, express.json(), (req, res) => {
+  if (!ADMIN_PASSWORD) {
+    return res.status(503).json({
+      error: "Admin panel is not configured. Set the ADMIN_PASSWORD environment variable.",
+    });
+  }
+  const password = (req.body && req.body.password) || "";
+  if (!password || !passwordMatches(password)) {
+    return res.status(401).json({ error: "Incorrect password." });
+  }
+  pruneAdminSessions();
+  const token = crypto.randomBytes(32).toString("hex");
+  adminSessions.set(token, Date.now() + ADMIN_SESSION_TTL_MS);
+  const isHttps = req.secure || req.headers["x-forwarded-proto"] === "https";
+  res.setHeader(
+    "Set-Cookie",
+    `admin_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${Math.floor(
+      ADMIN_SESSION_TTL_MS / 1000
+    )}${isHttps ? "; Secure" : ""}`
+  );
+  res.json({ ok: true });
+});
+
+app.post("/api/admin/logout", (req, res) => {
+  const token = parseCookies(req).admin_session;
+  if (token) adminSessions.delete(token);
+  res.setHeader(
+    "Set-Cookie",
+    "admin_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0"
+  );
+  res.json({ ok: true });
+});
+
+app.get("/api/admin/stats", requireAdmin, (req, res) => {
+  const now = Date.now();
+  const connections = [];
+  const byIP = new Map();
+  for (const meta of sseConnectionMeta.values()) {
+    connections.push({
+      ip: meta.ip,
+      userAgent: meta.userAgent,
+      connectedAt: meta.connectedAt,
+      durationMs: now - meta.connectedAt,
+    });
+    byIP.set(meta.ip, (byIP.get(meta.ip) || 0) + 1);
+  }
+  connections.sort((a, b) => a.connectedAt - b.connectedAt);
+  const ipList = [...byIP.entries()]
+    .map(([ip, count]) => ({ ip, count }))
+    .sort((a, b) => b.count - a.count);
+  res.json({
+    serverTime: now,
+    uptimeMs: now - SERVER_START_TIME,
+    totalConnections: connections.length,
+    maxConnections: SSE_MAX_CONNECTIONS,
+    uniqueIPs: byIP.size,
+    byIP: ipList,
+    connections,
+    totalMembers: members.length,
+    cachedMembers: Object.keys(leaderboardCache).length,
+  });
+});
+
+app.get("/admin", (req, res) => {
+  res.setHeader("Cache-Control", "no-cache");
+  res.sendFile(path.join(__dirname, "admin.html"), (err) => {
+    if (err && !res.headersSent) {
+      res.status(500).end();
+    }
+  });
 });
 
 // ===== Serve frontend =====
