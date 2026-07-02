@@ -44,8 +44,22 @@ export default function App() {
     }
   };
 
+  // Apply the color theme whenever dark mode toggles.
   useEffect(() => {
     applyMode(darkMode);
+  }, [darkMode]);
+
+  // Open exactly one live leaderboard connection per browser.
+  // The Web Locks API guarantees only one tab/window in this browser holds
+  // the "live tab" lock at a time; other tabs show a friendly message. The
+  // lock releases automatically when the holding tab closes or refreshes, so
+  // a refresh seamlessly re-acquires it (with a short retry to cover the tiny
+  // release/re-acquire window). The server-side per-IP cap remains only as a
+  // DoS guard for shared networks.
+  useEffect(() => {
+    let es = null;
+    let releaseLock = null;
+    let cancelled = false;
 
     const applyData = (data) => {
       setMembers(data.members || []);
@@ -54,30 +68,71 @@ export default function App() {
       setFetchError(null);
     };
 
-    // Use SSE for real-time per-player updates; fall back to polling on error
-    const es = new EventSource("/api/leaderboard/stream");
-    es.onmessage = (event) => {
-      try {
-        applyData(JSON.parse(event.data));
-      } catch (err) {
-        console.error("Failed to parse SSE data:", err);
-      }
-    };
-    es.addEventListener("connection_error", (event) => {
-      try {
-        const { error } = JSON.parse(event.data);
-        setConnectionBlocked(error);
-      } catch {
-        setConnectionBlocked("Too many connections. Please close other tabs and refresh.");
-      }
-      es.close();
-    });
-    es.onerror = () => {
-      setFetchError("Live connection lost — retrying...");
+    const startStream = () => {
+      es = new EventSource("/api/leaderboard/stream");
+      es.onmessage = (event) => {
+        try {
+          applyData(JSON.parse(event.data));
+        } catch (err) {
+          console.error("Failed to parse SSE data:", err);
+        }
+      };
+      es.addEventListener("connection_error", (event) => {
+        try {
+          const { error } = JSON.parse(event.data);
+          setConnectionBlocked(error);
+        } catch {
+          setConnectionBlocked("Too many connections. Please try again later.");
+        }
+        es.close();
+      });
+      es.onerror = () => {
+        setFetchError("Live connection lost — retrying...");
+      };
     };
 
-    return () => es.close();
-  }, [darkMode]);
+    const LOCK_NAME = "leaderboard-live-tab";
+    const MAX_ATTEMPTS = 5;
+    const RETRY_DELAY_MS = 150;
+
+    const tryAcquire = (attempt) => {
+      if (cancelled) return;
+      navigator.locks.request(LOCK_NAME, { ifAvailable: true }, (lock) => {
+        if (cancelled) return undefined;
+        if (!lock) {
+          // Lock held by another tab. Retry a few times to tolerate the brief
+          // window during a same-tab refresh; if it stays held, it's a real
+          // second tab, so show the message.
+          if (attempt < MAX_ATTEMPTS) {
+            setTimeout(() => tryAcquire(attempt + 1), RETRY_DELAY_MS);
+            return undefined;
+          }
+          setConnectionBlocked(
+            "The leaderboard is already open in another tab in this browser. Please switch to that tab, or close it and click Retry."
+          );
+          return undefined;
+        }
+        // We hold the lock. Keep it by holding the promise open until unmount.
+        startStream();
+        return new Promise((resolve) => {
+          releaseLock = resolve;
+        });
+      });
+    };
+
+    if (navigator.locks && navigator.locks.request) {
+      tryAcquire(1);
+    } else {
+      // Browser without Web Locks support: fall back to the server-side cap.
+      startStream();
+    }
+
+    return () => {
+      cancelled = true;
+      if (es) es.close();
+      if (releaseLock) releaseLock();
+    };
+  }, []);
 
   const tabStyle = (active) => ({
     padding: "8px 14px",
@@ -108,6 +163,21 @@ export default function App() {
         <p style={{ fontSize: "1.1em", maxWidth: 500, lineHeight: 1.6, color: "var(--footer-color)" }}>
           {connectionBlocked}
         </p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            marginTop: 24,
+            padding: "10px 20px",
+            borderRadius: 10,
+            border: "1px solid var(--table-border)",
+            background: "var(--link-color)",
+            color: "#fff",
+            cursor: "pointer",
+            fontSize: "1em",
+          }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
