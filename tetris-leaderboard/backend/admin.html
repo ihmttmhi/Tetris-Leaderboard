@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Leaderboard Admin</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --panel: #1a1d27;
+      --panel-2: #232733;
+      --border: #2e3342;
+      --text: #e6e8ee;
+      --muted: #8b90a0;
+      --accent: #5b8cff;
+      --danger: #ff5b6e;
+      --ok: #3ddc84;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    a { color: var(--accent); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+
+    /* Login */
+    #login {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .login-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 32px;
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+    .login-card h1 { margin: 0 0 6px; font-size: 20px; }
+    .login-card p { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+    input[type="password"]:focus { outline: none; border-color: var(--accent); }
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      background: var(--accent);
+      color: #fff;
+      width: 100%;
+    }
+    button:disabled { opacity: 0.6; cursor: default; }
+    button.secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      width: auto;
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+    .err { color: var(--danger); font-size: 14px; min-height: 18px; margin-top: 8px; }
+
+    /* Dashboard */
+    #dash { display: none; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .topbar h1 { margin: 0; font-size: 22px; }
+    .topbar .right { display: flex; align-items: center; gap: 12px; }
+    .live { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); display: inline-block; }
+    .dot.stale { background: var(--danger); }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .card .value { font-size: 26px; font-weight: 700; margin-top: 6px; }
+    .card .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+    h2 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 24px 0 10px; }
+    .table-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; position: sticky; top: 0; background: var(--panel); }
+    tr:last-child td { border-bottom: none; }
+    td.ua { white-space: normal; color: var(--muted); font-size: 13px; max-width: 420px; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .empty { padding: 24px 14px; color: var(--muted); text-align: center; }
+    .pill { background: var(--panel-2); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <!-- LOGIN VIEW -->
+  <div id="login">
+    <form class="login-card" id="loginForm">
+      <h1>Leaderboard Admin</h1>
+      <p>Enter the admin password to view live connections.</p>
+      <input type="password" id="password" placeholder="Admin password" autocomplete="current-password" />
+      <button type="submit" id="loginBtn">Log in</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+  </div>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="dash">
+    <div class="wrap">
+      <div class="topbar">
+        <h1>Live Connections</h1>
+        <div class="right">
+          <span class="live"><span class="dot" id="liveDot"></span><span id="liveText">updating…</span></span>
+          <button class="secondary" id="logoutBtn">Log out</button>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="label">Active connections</div>
+          <div class="value" id="cTotal">–</div>
+          <div class="sub" id="cCap"></div>
+        </div>
+        <div class="card">
+          <div class="label">Unique IPs</div>
+          <div class="value" id="cIPs">–</div>
+          <div class="sub">distinct networks/devices</div>
+        </div>
+        <div class="card">
+          <div class="label">Members tracked</div>
+          <div class="value" id="cMembers">–</div>
+          <div class="sub" id="cCached"></div>
+        </div>
+        <div class="card">
+          <div class="label">Server uptime</div>
+          <div class="value" id="cUptime">–</div>
+          <div class="sub" id="cServerTime"></div>
+        </div>
+      </div>
+
+      <h2>Connections per IP</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>IP address</th><th>Connections</th></tr></thead>
+          <tbody id="ipBody"></tbody>
+        </table>
+      </div>
+
+      <h2>All active connections</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>IP address</th><th>Connected</th><th>Duration</th><th>Browser / device (user agent)</th></tr></thead>
+          <tbody id="connBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const loginView = document.getElementById("login");
+    const dashView = document.getElementById("dash");
+    const loginForm = document.getElementById("loginForm");
+    const passwordInput = document.getElementById("password");
+    const loginBtn = document.getElementById("loginBtn");
+    const loginErr = document.getElementById("loginErr");
+    let pollTimer = null;
+
+    function fmtDuration(ms) {
+      const s = Math.floor(ms / 1000);
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      if (h > 0) return `${h}h ${m}m`;
+      if (m > 0) return `${m}m ${sec}s`;
+      return `${sec}s`;
+    }
+
+    function fmtTime(ts) {
+      return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (c) => (
+        { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+      ));
+    }
+
+    function setLive(ok, text) {
+      document.getElementById("liveDot").className = ok ? "dot" : "dot stale";
+      document.getElementById("liveText").textContent = text;
+    }
+
+    function render(data) {
+      document.getElementById("cTotal").textContent = data.totalConnections;
+      document.getElementById("cCap").textContent = "of " + data.maxConnections + " max";
+      document.getElementById("cIPs").textContent = data.uniqueIPs;
+      document.getElementById("cMembers").textContent = data.totalMembers;
+      document.getElementById("cCached").textContent = data.cachedMembers + " with data";
+      document.getElementById("cUptime").textContent = fmtDuration(data.uptimeMs);
+      document.getElementById("cServerTime").textContent = "server time " + fmtTime(data.serverTime);
+
+      const ipBody = document.getElementById("ipBody");
+      if (!data.byIP.length) {
+        ipBody.innerHTML = '<tr><td colspan="2" class="empty">No active connections</td></tr>';
+      } else {
+        ipBody.innerHTML = data.byIP.map((row) => (
+          `<tr><td class="mono">${escapeHtml(row.ip)}</td><td><span class="pill">${row.count}</span></td></tr>`
+        )).join("");
+      }
+
+      const connBody = document.getElementById("connBody");
+      if (!data.connections.length) {
+        connBody.innerHTML = '<tr><td colspan="4" class="empty">Nobody is on the site right now</td></tr>';
+      } else {
+        connBody.innerHTML = data.connections.map((c) => (
+          `<tr>
+            <td class="mono">${escapeHtml(c.ip)}</td>
+            <td>${fmtTime(c.connectedAt)}</td>
+            <td>${fmtDuration(c.durationMs)}</td>
+            <td class="ua">${escapeHtml(c.userAgent)}</td>
+          </tr>`
+        )).join("");
+      }
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch("/api/admin/stats", { credentials: "same-origin" });
+        if (res.status === 401 || res.status === 503) {
+          stopPolling();
+          showLogin(res.status === 503 ? "Admin panel is not configured on the server." : "");
+          return;
+        }
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        render(data);
+        setLive(true, "updated " + fmtTime(Date.now()));
+      } catch (e) {
+        setLive(false, "connection lost — retrying");
+      }
+    }
+
+    function startPolling() {
+      loadStats();
+      pollTimer = setInterval(loadStats, 5000);
+    }
+    function stopPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = null;
+    }
+
+    function showDashboard() {
+      loginView.style.display = "none";
+      dashView.style.display = "block";
+      startPolling();
+    }
+    function showLogin(msg) {
+      dashView.style.display = "none";
+      loginView.style.display = "flex";
+      loginErr.textContent = msg || "";
+      passwordInput.value = "";
+      passwordInput.focus();
+    }
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      loginErr.textContent = "";
+      loginBtn.disabled = true;
+      try {
+        const res = await fetch("/api/admin/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ password: passwordInput.value }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+          showDashboard();
+        } else {
+          loginErr.textContent = data.error || "Login failed.";
+        }
+      } catch (e) {
+        loginErr.textContent = "Could not reach the server.";
+      } finally {
+        loginBtn.disabled = false;
+      }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      stopPolling();
+      try {
+        await fetch("/api/admin/logout", { method: "POST", credentials: "same-origin" });
+      } catch (e) { /* ignore */ }
+      showLogin("");
+    });
+
+    // On load, check if we already have a valid session.
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/stats", { credentials: "same-origin" });
+        if (res.ok) {
+          const data = await res.json();
+          showDashboard();
+          render(data);
+          setLive(true, "updated " + fmtTime(Date.now()));
+        } else {
+          showLogin(res.status === 503 ? "Admin panel is not configured on the server." : "");
+        }
+      } catch (e) {
+        showLogin("");
+      }
+    })();
+  </script>
+</body>
+</html>
